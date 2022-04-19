@@ -21,12 +21,24 @@ namespace core.Repositories
 
         public async Task<IEnumerable<Order>> GetAll()
         {
-            return await _context.Orders.ToListAsync();
+            return await _context.Orders
+                .Include(o => o.User)
+                .Include(o => o.PaymentMethod)
+                .Include(o => o.CargoType)
+                .Include(o => o.SendingCountry)
+                .Include(o => o.DestinationCountry)
+                .ToListAsync();
         }
 
         public async Task<Order> Get(int id)
         {
-            var order = await _context.Orders.FindAsync(id);
+            var order = await _context.Orders
+                .Include(o => o.User)
+                .Include(o => o.PaymentMethod)
+                .Include(o => o.CargoType)
+                .Include(o => o.SendingCountry)
+                .Include(o => o.DestinationCountry)
+                .FirstOrDefaultAsync(u => u.UserId == id);
 
             if (order == null)
                 throw new EntityNotFoundException();

@@ -19,6 +19,21 @@ namespace core.Repositories
             _context = context;
         }
 
+        public async Task<IEnumerable<CargoType>> GetAll()
+        {
+            return await _context.CargoTypes.ToListAsync();
+        }
+
+        public async Task<CargoType> Get(int id)
+        {
+            var cargoType = await _context.CargoTypes.FindAsync(id);
+
+            if (cargoType == null)
+                throw new EntityNotFoundException();
+
+            return cargoType;
+        }
+
         public async Task Create(CargoType cargoType)
         {
             if (cargoType == null)
@@ -39,21 +54,6 @@ namespace core.Repositories
 
             _context.CargoTypes.Remove(cargoType);
             await _context.SaveChangesAsync();
-        }
-
-        public async Task<CargoType> Get(int id)
-        {
-            var cargoType = await _context.CargoTypes.FindAsync(id);
-
-            if (cargoType == null)
-                throw new EntityNotFoundException();
-
-            return cargoType;
-        }
-
-        public async Task<IEnumerable<CargoType>> GetAll()
-        {
-            return await _context.CargoTypes.ToListAsync();
         }
 
         public async Task Update(int id, CargoType entity)

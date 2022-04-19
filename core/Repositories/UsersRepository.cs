@@ -21,12 +21,20 @@ namespace core.Repositories
 
         public async Task<IEnumerable<User>> GetAll()
         {
-            return await _context.Users.ToListAsync();
+            return await _context.Users
+                .Include(u => u.Company)
+                .Include(u => u.Role)
+                .Include(u => u.Country)
+                .ToListAsync();
         }
 
         public async Task<User> Get(int id)
         {
-            var user = await _context.Users.FindAsync(id);
+            var user = await _context.Users
+                .Include(u => u.Company)
+                .Include(u => u.Role)
+                .Include(u => u.Country)
+                .FirstOrDefaultAsync(u => u.UserId == id);           
 
             if (user == null)
                 throw new EntityNotFoundException();
