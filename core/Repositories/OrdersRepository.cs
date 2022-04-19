@@ -23,6 +23,11 @@ namespace core.Repositories
         {
             return await _context.Orders
                 .Include(o => o.User)
+                    .ThenInclude(u => u.Role)
+                .Include(o => o.User)
+                    .ThenInclude(u => u.Company)
+                .Include(o => o.User)
+                    .ThenInclude(u => u.Country)
                 .Include(o => o.PaymentMethod)
                 .Include(o => o.CargoType)
                 .Include(o => o.SendingCountry)
@@ -34,6 +39,11 @@ namespace core.Repositories
         {
             var order = await _context.Orders
                 .Include(o => o.User)
+                    .ThenInclude(u => u.Role)
+                .Include(o => o.User)
+                    .ThenInclude(u => u.Company)
+                .Include(o => o.User)
+                    .ThenInclude(u => u.Country)
                 .Include(o => o.PaymentMethod)
                 .Include(o => o.CargoType)
                 .Include(o => o.SendingCountry)
