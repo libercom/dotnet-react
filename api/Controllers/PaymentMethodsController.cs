@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using core.Context;
+using core.Repositories.Abstractions;
 
 namespace api.Controllers
 {
@@ -9,38 +10,48 @@ namespace api.Controllers
     [Route("api/[controller]")]
     public class PaymentMethodsController : Controller
     {
-        private readonly CargoDBContext _context;
+        private readonly IPaymentMethodsRepository _paymentMethods;
 
-        public PaymentMethodsController(CargoDBContext context)
+        public PaymentMethodsController(IPaymentMethodsRepository paymentMethods)
         {
-            _context = context;
+            _paymentMethods = paymentMethods;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<PaymentMethod>>> GetAllPaymentMethods()
         {
-            return await _context.PaymentMethods.ToListAsync();
+            var paymentMethods = await _paymentMethods.GetAll();
+
+            return paymentMethods.ToList();
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<PaymentMethod>> GetPaymentMethod(int id)
         {
-            var paymentMethod = await _context.PaymentMethods.FindAsync(id);
+            try
+            {
+                var paymentMethod = await _paymentMethods.Get(id);
 
-            if (paymentMethod == null)
+                return paymentMethod;
+            }
+            catch (EntityNotFoundException)
+            {
                 return NotFound();
+            }
 
-            return paymentMethod;
         }
 
         [HttpPost]
         public async Task<IActionResult> PostPaymentMethod(PaymentMethod paymentMethod)
         {
-            if (paymentMethod == null)
+            try
+            {
+                await _paymentMethods.Create(paymentMethod);
+            }
+            catch (ArgumentNullException)
+            {
                 return BadRequest();
-
-            _context.PaymentMethods.Add(paymentMethod);
-            await _context.SaveChangesAsync();
+            }
 
             return CreatedAtAction(nameof(GetPaymentMethod), new { id = paymentMethod.PaymentMethodId }, paymentMethod);
         }
@@ -48,15 +59,14 @@ namespace api.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePaymentMethod(int id)
         {
-            var paymentMethod = await _context.PaymentMethods.FindAsync(id);
-
-            if (paymentMethod == null)
+            try
+            {
+                await _paymentMethods.Delete(id);
+            }
+            catch (EntityNotFoundException)
             {
                 return NotFound();
             }
-
-            _context.PaymentMethods.Remove(paymentMethod);
-            await _context.SaveChangesAsync();
 
             return NoContent();
         }

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using core.Context;
+using core.Repositories.Abstractions;
 
 namespace api.Controllers
 {
@@ -9,38 +10,47 @@ namespace api.Controllers
     [Route("api/[controller]")]
     public class CargoTypesController : Controller
     {
-        private readonly CargoDBContext _context;
+        private readonly ICargoTypesRepository _cargoTypes;
 
-        public CargoTypesController(CargoDBContext context)
+        public CargoTypesController(ICargoTypesRepository cargoTypes)
         {
-            _context = context;
+            _cargoTypes = cargoTypes;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<CargoType>>> GetAllCargoTypes()
         {
-            return await _context.CargoTypes.ToListAsync();
+            var cargoTypes = await _cargoTypes.GetAll();
+
+            return cargoTypes.ToList();
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<CargoType>> GetCargoType(int id)
         {
-            var cargoType = await _context.CargoTypes.FindAsync(id);
+            try
+            {
+                var cargoType = await _cargoTypes.Get(id);
 
-            if (cargoType == null)
+                return cargoType;
+            }
+            catch (EntityNotFoundException)
+            {
                 return NotFound();
-
-            return cargoType;
+            }
         }
 
         [HttpPost]
         public async Task<IActionResult> PostCargoType(CargoType cargoType)
         {
-            if (cargoType == null)
+            try
+            {
+                await _cargoTypes.Create(cargoType);
+            }
+            catch (ArgumentNullException)
+            {
                 return BadRequest();
-
-            _context.CargoTypes.Add(cargoType);
-            await _context.SaveChangesAsync();
+            }
 
             return CreatedAtAction(nameof(GetCargoType), new { id = cargoType.CargoTypeId }, cargoType);
         }
@@ -48,15 +58,14 @@ namespace api.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCargoType(int id)
         {
-            var cargoType = await _context.CargoTypes.FindAsync(id);
-
-            if (cargoType == null)
+            try
+            {
+                await _cargoTypes.Delete(id);
+            }
+            catch (EntityNotFoundException)
             {
                 return NotFound();
             }
-
-            _context.CargoTypes.Remove(cargoType);
-            await _context.SaveChangesAsync();
 
             return NoContent();
         }

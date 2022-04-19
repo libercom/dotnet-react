@@ -1,8 +1,7 @@
 ﻿using core.Models;
-using core.Context;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using AutoMapper;
+using core.Repositories.Abstractions;
 
 namespace api.Controllers
 {
@@ -10,42 +9,53 @@ namespace api.Controllers
     [Route("api/[controller]")]
     public class OrdersController : Controller
     {
-        private readonly CargoDBContext _context;
+        private readonly IOrdersRepository _orders;
         private readonly IMapper _mapper;
 
-        public OrdersController(CargoDBContext context, IMapper mapper)
+        public OrdersController(IOrdersRepository orders, IMapper mapper)
         {
-            _context = context;
+            _orders = orders;
             _mapper = mapper;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<OrderDto>>> GetAllOrders()
         {
-            return await _context.Orders.Select(o => _mapper.Map<OrderDto>(o)).ToListAsync();
+            var orders = await _orders.GetAll();
+
+            return orders.Select(o => _mapper.Map<OrderDto>(o)).ToList();
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<OrderDto>> GetOrder(int id)
         {
-            var order = await _context.Orders.FindAsync(id);
-
-            if (order == null)
+            try
+            {
+                var order = await _orders.Get(id);
+                
+                return _mapper.Map<OrderDto>(order);
+            }
+            catch (EntityNotFoundException)
+            {
                 return NotFound();
+            }
 
-            return _mapper.Map<OrderDto>(order);
         }
 
         [HttpPost]
         public async Task<IActionResult> PostOrder(OrderCreationDto orderDto)
         {
-            if (orderDto == null)
-                return BadRequest();
-
             var order = _mapper.Map<Order>(orderDto);
 
-            _context.Orders.Add(order);
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _orders.Create(order);
+            }
+            catch (ArgumentNullException)
+            {
+                return BadRequest();
+
+            }
 
             return CreatedAtAction(nameof(GetOrder), new { id = order.OrderId }, order);
         }
@@ -53,15 +63,14 @@ namespace api.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteOrder(int id)
         {
-            var order = await _context.Orders.FindAsync(id);
-
-            if (order == null)
+            try
+            {
+                await _orders.Delete(id);
+            }
+            catch (EntityNotFoundException)
             {
                 return NotFound();
             }
-
-            _context.Orders.Remove(order);
-            await _context.SaveChangesAsync();
 
             return NoContent();
         }

@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using core.Context;
 using core.Models;
+using core.Repositories.Abstractions;
 
 namespace api.Controllers
 {
@@ -9,38 +10,47 @@ namespace api.Controllers
     [Route("api/[controller]")]
     public class CountriesController : Controller
     {
-        private readonly CargoDBContext _context;
+        private readonly ICountriesRepository _countries;
 
-        public CountriesController(CargoDBContext context)
+        public CountriesController(ICountriesRepository countries)
         {
-            _context = context;
+            _countries = countries;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Country>>> GetAllCountries()
         {
-            return await _context.Countries.ToListAsync();
+            var countries = await _countries.GetAll();
+
+            return countries.ToList();
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<Country>> GetCountry(int id)
         {
-            var country = await _context.Countries.FindAsync(id);
+            try
+            {
+                var country = await _countries.Get(id);
 
-            if (country == null)
+                return country;
+            }
+            catch (EntityNotFoundException)
+            {
                 return NotFound();
-
-            return country;
+            }
         }
 
         [HttpPost]
         public async Task<IActionResult> PostCountry(Country country)
         {
-            if (country == null)
+            try
+            {
+                await _countries.Create(country);
+            }
+            catch (ArgumentNullException)
+            {
                 return BadRequest();
-
-            _context.Countries.Add(country);
-            await _context.SaveChangesAsync();
+            }
 
             return CreatedAtAction(nameof(GetCountry), new { id = country.CountryId }, country);
         }
@@ -48,15 +58,14 @@ namespace api.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCompany(int id)
         {
-            var country = await _context.Countries.FindAsync(id);
-
-            if (country == null)
+            try
+            {
+                await _countries.Delete(id);
+            }
+            catch (EntityNotFoundException)
             {
                 return NotFound();
             }
-
-            _context.Countries.Remove(country);
-            await _context.SaveChangesAsync();
 
             return NoContent();
         }

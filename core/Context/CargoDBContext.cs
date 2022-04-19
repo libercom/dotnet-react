@@ -13,10 +13,14 @@ namespace core.Context
         public DbSet<CargoType> CargoTypes { get; set; }
         public DbSet<PaymentMethod> PaymentMethods { get; set; }
 
+        public CargoDBContext(DbContextOptions<CargoDBContext> options)
+            : base(options)
+        {
+        }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder
-                .UseSqlServer("Server=.;Database=CargoProject;Trusted_Connection=True;MultipleActiveResultSets=True;")
                 .UseLazyLoadingProxies();
         }
 

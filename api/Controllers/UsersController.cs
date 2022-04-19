@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using core.Models;
 using core.Context;
 using AutoMapper;
+using core.Repositories.Abstractions;
 
 namespace api.Controllers
 {
@@ -10,42 +11,52 @@ namespace api.Controllers
     [Route("api/[controller]")]
     public class UsersController : Controller
     {
-        private readonly CargoDBContext _context;
+        private readonly IUsersRepository _users;
         private readonly IMapper _mapper;
 
-        public UsersController(CargoDBContext context, IMapper mapper)
+        public UsersController(IUsersRepository users, IMapper mapper)
         {
-            _context = context;
+            _users = users;
             _mapper = mapper;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<UserDto>>> GetAllUsers()
         {
-            return await _context.Users.Select(u => _mapper.Map<UserDto>(u)).ToListAsync();
+            var users = await _users.GetAll();
+            
+            return users.Select(u => _mapper.Map<UserDto>(u)).ToList();
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<UserDto>> GetUser(int id)
         {
-            var user = await _context.Users.FindAsync(id);
+            try
+            {
+                var user = await _users.Get(id);
+                
+                return _mapper.Map<UserDto>(user);
 
-            if (user == null)
+            }
+            catch (EntityNotFoundException)
+            {
                 return NotFound();
-
-            return _mapper.Map<UserDto>(user);
+            }
         }
 
         [HttpPost]
         public async Task<IActionResult> PostUser(UserCreationDto userDto)
         {
-            if (userDto == null)
-                return BadRequest();
-
             var user = _mapper.Map<User>(userDto);
 
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _users.Create(user);
+            }
+            catch (ArgumentNullException)
+            {
+                return BadRequest();
+            }
 
             return CreatedAtAction(nameof(GetUser), new { id = user.UserId }, user);
         }
@@ -53,15 +64,14 @@ namespace api.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(int id)
         {
-            var user = await _context.Users.FindAsync(id);
-
-            if (user == null)
+            try
+            {
+                await _users.Delete(id);
+            }
+            catch (EntityNotFoundException)
             {
                 return NotFound();
             }
-
-            _context.Users.Remove(user);
-            await _context.SaveChangesAsync();
 
             return NoContent();
         }

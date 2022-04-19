@@ -1,4 +1,6 @@
-﻿namespace core.Models
+﻿using System.Text.Json.Serialization;
+
+namespace core.Models
 {
     public class CargoType
     {

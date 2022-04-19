@@ -8,10 +8,17 @@ namespace core.Repositories.Abstractions
 {
     public interface IRepository<T>
     {
-        public IList<T> GetAll();
-        public IList<T> Get(int id);
-        public void Create(T entity);
-        public void Update(T entity);
-        public void Delete(T entity);
+        public Task<IEnumerable<T>> GetAll();
+        public Task<T> Get(int id);
+        public Task Create(T entity);
+        public Task Update(int id, T entity);
+        public Task Delete(int id);
+    }
+
+    public class EntityNotFoundException : Exception
+    {
+        public EntityNotFoundException() : base("The given entity was not found")
+        {
+        }
     }
 }

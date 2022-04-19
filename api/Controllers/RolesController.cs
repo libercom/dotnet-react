@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using core.Context;
 using core.Models;
+using core.Repositories.Abstractions;
 
 namespace api.Controllers
 {
@@ -9,38 +10,48 @@ namespace api.Controllers
     [Route("api/[controller]")]
     public class RolesController : Controller
     {
-        private readonly CargoDBContext _context;
+        private readonly IRolesRepository _roles;
 
-        public RolesController(CargoDBContext context)
+        public RolesController(IRolesRepository roles)
         {
-            _context = context;
+            _roles = roles;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Role>>> GetAllRoles()
         {
-            return await _context.Roles.ToListAsync();
+            var roles = await _roles.GetAll();
+
+            return roles.ToList();
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<Role>> GetRole(int id)
         {
-            var role = await _context.Roles.FindAsync(id);
+            try
+            {
+                var role = await _roles.Get(id);
 
-            if (role == null)
+                return role;
+            }
+            catch (EntityNotFoundException)
+            {
                 return NotFound();
+            }
 
-            return role;
         }
 
         [HttpPost]
         public async Task<IActionResult> PostCompany(Role role)
         {
-            if (role == null)
+            try
+            {
+                await _roles.Create(role);
+            }
+            catch (ArgumentNullException)
+            {
                 return BadRequest();
-
-            _context.Roles.Add(role);
-            await _context.SaveChangesAsync();
+            }
 
             return CreatedAtAction(nameof(GetRole), new { id = role.RoleId }, role);
         }
@@ -48,15 +59,14 @@ namespace api.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCompany(int id)
         {
-            var role = await _context.Roles.FindAsync(id);
-
-            if (role == null)
+            try
+            {
+                await _roles.Delete(id);
+            }
+            catch (EntityNotFoundException)
             {
                 return NotFound();
             }
-
-            _context.Roles.Remove(role);
-            await _context.SaveChangesAsync();
 
             return NoContent();
         }
