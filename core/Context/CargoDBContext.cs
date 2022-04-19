@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Project.Models;
+using core.Models;
 
-namespace Project.Context
+namespace core.Context
 {
     public class CargoDBContext: DbContext
     {
@@ -13,14 +13,11 @@ namespace Project.Context
         public DbSet<CargoType> CargoTypes { get; set; }
         public DbSet<PaymentMethod> PaymentMethods { get; set; }
 
-        public CargoDBContext(DbContextOptions<CargoDBContext> dbContextOptions) : base(dbContextOptions)
-        {
-        }
-
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder
-                  .UseLazyLoadingProxies();
+                .UseSqlServer("Server=.;Database=CargoProject;Trusted_Connection=True;MultipleActiveResultSets=True;")
+                .UseLazyLoadingProxies();
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

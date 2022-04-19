@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using Project.Context;
-using Project.Services;
+using core.Context;
+using core.Profiles;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,9 +10,8 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddDbContext<CargoDBContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("CargoDBContext")));
-builder.Services.AddSingleton<IDtoMappingService, DtoMappingService>();
+builder.Services.AddScoped<CargoDBContext>();
+builder.Services.AddAutoMapper(typeof(UserProfile), typeof(OrderProfile));
 
 var app = builder.Build();
 

@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Project.Context;
-using Project.Models;
+using core.Context;
+using core.Models;
 
-namespace Project.Controllers
+namespace api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]

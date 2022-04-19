@@ -1,28 +1,28 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Project.Context;
-using Project.Models;
-using Project.Services;
+using core.Models;
+using core.Context;
+using AutoMapper;
 
-namespace Project.Controllers
+namespace api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
     public class UsersController : Controller
     {
         private readonly CargoDBContext _context;
-        private readonly IDtoMappingService _dtoMapper;
+        private readonly IMapper _mapper;
 
-        public UsersController(CargoDBContext context, IDtoMappingService dtoMapper)
+        public UsersController(CargoDBContext context, IMapper mapper)
         {
             _context = context;
-            _dtoMapper = dtoMapper;
+            _mapper = mapper;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<UserDto>>> GetAllUsers()
         {
-            return await _context.Users.Select(u => _dtoMapper.UserToDto(u)).ToListAsync();
+            return await _context.Users.Select(u => _mapper.Map<UserDto>(u)).ToListAsync();
         }
 
         [HttpGet("{id}")]
@@ -33,7 +33,7 @@ namespace Project.Controllers
             if (user == null)
                 return NotFound();
 
-            return _dtoMapper.UserToDto(user);
+            return _mapper.Map<UserDto>(user);
         }
 
         [HttpPost]
@@ -42,7 +42,7 @@ namespace Project.Controllers
             if (userDto == null)
                 return BadRequest();
 
-            var user = _dtoMapper.DtoToUser(userDto);
+            var user = _mapper.Map<User>(userDto);
 
             _context.Users.Add(user);
             await _context.SaveChangesAsync();

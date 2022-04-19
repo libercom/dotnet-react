@@ -1,28 +1,28 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using core.Models;
+using core.Context;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Project.Context;
-using Project.Models;
-using Project.Services;
+using AutoMapper;
 
-namespace Project.Controllers
+namespace api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
     public class OrdersController : Controller
     {
         private readonly CargoDBContext _context;
-        private readonly IDtoMappingService _dtoMapping;
+        private readonly IMapper _mapper;
 
-        public OrdersController(CargoDBContext context, IDtoMappingService dtoMapping)
+        public OrdersController(CargoDBContext context, IMapper mapper)
         {
             _context = context;
-            _dtoMapping = dtoMapping;
+            _mapper = mapper;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<OrderDto>>> GetAllOrders()
         {
-            return await _context.Orders.Select(o => _dtoMapping.OrderToDto(o)).ToListAsync();
+            return await _context.Orders.Select(o => _mapper.Map<OrderDto>(o)).ToListAsync();
         }
 
         [HttpGet("{id}")]
@@ -33,7 +33,7 @@ namespace Project.Controllers
             if (order == null)
                 return NotFound();
 
-            return _dtoMapping.OrderToDto(order);
+            return _mapper.Map<OrderDto>(order);
         }
 
         [HttpPost]
@@ -42,7 +42,7 @@ namespace Project.Controllers
             if (orderDto == null)
                 return BadRequest();
 
-            var order = _dtoMapping.DtoToOrder(orderDto);
+            var order = _mapper.Map<Order>(orderDto);
 
             _context.Orders.Add(order);
             await _context.SaveChangesAsync();

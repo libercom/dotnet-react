@@ -3,19 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Project.Context;
+using core.Context;
 
 #nullable disable
 
-namespace Project.Migrations
+namespace core.Migrations
 {
     [DbContext(typeof(CargoDBContext))]
-    [Migration("20220418172448_EnabledLazyLoading")]
-    partial class EnabledLazyLoading
+    partial class CargoDBContextModelSnapshot : ModelSnapshot
     {
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -24,7 +22,7 @@ namespace Project.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
 
-            modelBuilder.Entity("Project.Models.CargoType", b =>
+            modelBuilder.Entity("core.Models.CargoType", b =>
                 {
                     b.Property<int>("CargoTypeId")
                         .ValueGeneratedOnAdd()
@@ -41,7 +39,7 @@ namespace Project.Migrations
                     b.ToTable("CargoTypes");
                 });
 
-            modelBuilder.Entity("Project.Models.Company", b =>
+            modelBuilder.Entity("core.Models.Company", b =>
                 {
                     b.Property<int>("CompanyId")
                         .ValueGeneratedOnAdd()
@@ -62,7 +60,7 @@ namespace Project.Migrations
                     b.ToTable("Companies");
                 });
 
-            modelBuilder.Entity("Project.Models.Country", b =>
+            modelBuilder.Entity("core.Models.Country", b =>
                 {
                     b.Property<int>("CountryId")
                         .ValueGeneratedOnAdd()
@@ -79,7 +77,7 @@ namespace Project.Migrations
                     b.ToTable("Countries");
                 });
 
-            modelBuilder.Entity("Project.Models.Order", b =>
+            modelBuilder.Entity("core.Models.Order", b =>
                 {
                     b.Property<int>("OrderId")
                         .ValueGeneratedOnAdd()
@@ -128,7 +126,7 @@ namespace Project.Migrations
                     b.ToTable("Orders");
                 });
 
-            modelBuilder.Entity("Project.Models.PaymentMethod", b =>
+            modelBuilder.Entity("core.Models.PaymentMethod", b =>
                 {
                     b.Property<int>("PaymentMethodId")
                         .ValueGeneratedOnAdd()
@@ -145,7 +143,7 @@ namespace Project.Migrations
                     b.ToTable("PaymentMethods");
                 });
 
-            modelBuilder.Entity("Project.Models.Role", b =>
+            modelBuilder.Entity("core.Models.Role", b =>
                 {
                     b.Property<int>("RoleId")
                         .ValueGeneratedOnAdd()
@@ -162,7 +160,7 @@ namespace Project.Migrations
                     b.ToTable("Roles");
                 });
 
-            modelBuilder.Entity("Project.Models.User", b =>
+            modelBuilder.Entity("core.Models.User", b =>
                 {
                     b.Property<int>("UserId")
                         .ValueGeneratedOnAdd()
@@ -206,33 +204,33 @@ namespace Project.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("Project.Models.Order", b =>
+            modelBuilder.Entity("core.Models.Order", b =>
                 {
-                    b.HasOne("Project.Models.CargoType", "CargoType")
+                    b.HasOne("core.Models.CargoType", "CargoType")
                         .WithMany()
                         .HasForeignKey("CargoTypeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Project.Models.Country", "DestinationCountry")
+                    b.HasOne("core.Models.Country", "DestinationCountry")
                         .WithOne()
-                        .HasForeignKey("Project.Models.Order", "DestinationCountryId")
+                        .HasForeignKey("core.Models.Order", "DestinationCountryId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Project.Models.PaymentMethod", "PaymentMethod")
+                    b.HasOne("core.Models.PaymentMethod", "PaymentMethod")
                         .WithMany()
                         .HasForeignKey("PaymentMethodId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Project.Models.Country", "SendingCountry")
+                    b.HasOne("core.Models.Country", "SendingCountry")
                         .WithOne()
-                        .HasForeignKey("Project.Models.Order", "SendingCountryId")
+                        .HasForeignKey("core.Models.Order", "SendingCountryId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Project.Models.User", "User")
+                    b.HasOne("core.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -249,21 +247,21 @@ namespace Project.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Project.Models.User", b =>
+            modelBuilder.Entity("core.Models.User", b =>
                 {
-                    b.HasOne("Project.Models.Company", "Company")
+                    b.HasOne("core.Models.Company", "Company")
                         .WithMany()
                         .HasForeignKey("CompanyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Project.Models.Country", "Country")
+                    b.HasOne("core.Models.Country", "Country")
                         .WithMany()
                         .HasForeignKey("CountryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Project.Models.Role", "Role")
+                    b.HasOne("core.Models.Role", "Role")
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)

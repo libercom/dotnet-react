@@ -1,4 +1,4 @@
-﻿namespace Project.Models
+﻿namespace core.Models
 {
     public class OrderDto
     {
