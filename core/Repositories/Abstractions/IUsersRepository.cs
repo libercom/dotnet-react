@@ -9,5 +9,6 @@ namespace core.Repositories.Abstractions
 {
     public interface IUsersRepository : IRepository<User>
     {
+        public Task<User> GetByEmail(string email);
     }
 }

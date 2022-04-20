@@ -2,11 +2,14 @@
 using Microsoft.AspNetCore.Mvc;
 using AutoMapper;
 using core.Repositories.Abstractions;
+using core.Dtos;
+using Microsoft.AspNetCore.Authorization;
 
 namespace api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class OrdersController : Controller
     {
         private readonly IOrdersRepository _orders;
@@ -61,6 +64,7 @@ namespace api.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteOrder(int id)
         {
             try

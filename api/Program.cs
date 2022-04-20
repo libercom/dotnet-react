@@ -3,18 +3,30 @@ using core.Context;
 using core.Profiles;
 using core.Repositories;
 using core.Repositories.Abstractions;
+using api.Services.Abstractions;
+using api.Services;
+using api.Helpers;
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
+
 builder.Services.AddSwaggerGen();
-// Dto mapping
+
+var appSettingsSection = builder.Configuration.GetSection("AppSettings");
+builder.Services.Configure<AppSettings>(appSettingsSection);
+
+var appSettings = appSettingsSection.Get<AppSettings>();
+var key = Encoding.UTF8.GetBytes(appSettings.Secret);
+
+builder.Services.AddJwtAuthentication(key);
+
 builder.Services.AddAutoMapper(typeof(UserProfile), typeof(OrderProfile));
-// Database context and repositories DI
+
 builder.Services.AddDbContext<CargoDBContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("CargoDBContext")));
 
@@ -25,6 +37,9 @@ builder.Services.AddScoped<ICountriesRepository, CountriesRepository>();
 builder.Services.AddScoped<ICargoTypesRepository, CargoTypesRepository>();
 builder.Services.AddScoped<IPaymentMethodsRepository, PaymentMethodsRepository>();
 builder.Services.AddScoped<IRolesRepository, RolesRepository>();
+
+builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
+builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 
 var app = builder.Build();
 
@@ -37,6 +52,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

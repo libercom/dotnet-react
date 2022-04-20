@@ -3,11 +3,13 @@ using Microsoft.EntityFrameworkCore;
 using core.Context;
 using core.Models;
 using core.Repositories.Abstractions;
+using Microsoft.AspNetCore.Authorization;
 
 namespace api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Roles = "Admin")]
     public class RolesController : Controller
     {
         private readonly IRolesRepository _roles;

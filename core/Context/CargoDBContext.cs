@@ -36,6 +36,10 @@ namespace core.Context
                 .WithOne()
                 .HasForeignKey<Order>(o => o.DestinationCountryId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Email)
+                .IsUnique();
         }
     }
 }

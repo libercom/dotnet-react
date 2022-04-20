@@ -1,4 +1,6 @@
-﻿namespace core.Models
+﻿using System.Text.Json.Serialization;
+
+namespace core.Models
 {
     public class User
     {
@@ -13,5 +15,8 @@
         public virtual Role Role { get; set; }
         public int CountryId { get; set; }
         public virtual Country Country { get; set; }
+
+        [JsonIgnore]
+        public string Password { get; set; }
     }
 }

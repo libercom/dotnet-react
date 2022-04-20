@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using core.Dtos;
 using core.Models;
 using System;
 using System.Collections.Generic;

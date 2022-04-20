@@ -1,4 +1,4 @@
-﻿namespace core.Models
+﻿namespace core.Dtos
 {
     public class UserCreationDto
     {
@@ -10,5 +10,6 @@
         public int CompanyId { get; set; }
         public int RoleId { get; set; }
         public int CountryId { get; set; }
+        public string Password { get; set; }
     }
 }

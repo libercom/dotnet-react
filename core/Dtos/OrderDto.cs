@@ -1,4 +1,6 @@
-﻿namespace core.Models
+﻿using core.Models;
+
+namespace core.Dtos
 {
     public class OrderDto
     {

@@ -1,4 +1,5 @@
-﻿using core.Context;
+﻿using BCrypt.Net;
+using core.Context;
 using core.Models;
 using core.Repositories.Abstractions;
 using Microsoft.EntityFrameworkCore;
@@ -49,6 +50,8 @@ namespace core.Repositories
                 throw new ArgumentNullException("Invalid user");
             }
 
+            user.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
+
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
         }
@@ -80,6 +83,20 @@ namespace core.Repositories
             user.CountryId = entity.CountryId;
 
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<User> GetByEmail(string email)
+        {
+            var user = await _context.Users
+                .Include(u => u.Company)
+                .Include(u => u.Role)
+                .Include(u => u.Country)
+                .FirstOrDefaultAsync(u => u.Email == email);
+
+            if (user == null)
+                throw new EntityNotFoundException();
+
+            return user;
         }
     }
 }
