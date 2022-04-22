@@ -1,4 +1,4 @@
-﻿namespace core.Models
+﻿namespace domain.Models
 {
     public class Order
     {

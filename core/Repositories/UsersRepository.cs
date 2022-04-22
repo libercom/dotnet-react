@@ -1,35 +1,35 @@
-﻿using BCrypt.Net;
-using core.Context;
-using core.Models;
+﻿using AutoMapper;
+using domain.Context;
+using domain.Models;
+using core.Dtos;
 using core.Repositories.Abstractions;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace core.Repositories
 {
     public class UsersRepository : IUsersRepository
     {
         private readonly CargoDBContext _context;
+        private readonly IMapper _mapper;
 
-        public UsersRepository(CargoDBContext context)
+        public UsersRepository(CargoDBContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
-        public async Task<IEnumerable<User>> GetAll()
+        public async Task<IEnumerable<UserDto>> GetAll()
         {
-            return await _context.Users
+            var users = await _context.Users
                 .Include(u => u.Company)
                 .Include(u => u.Role)
                 .Include(u => u.Country)
                 .ToListAsync();
+
+            return users.Select(u => _mapper.Map<UserDto>(u));
         }
 
-        public async Task<User> Get(int id)
+        public async Task<UserDto> Get(int id)
         {
             var user = await _context.Users
                 .Include(u => u.Company)
@@ -40,11 +40,13 @@ namespace core.Repositories
             if (user == null)
                 throw new EntityNotFoundException();
 
-            return user;
+            return _mapper.Map<UserDto>(user);
         }
 
-        public async Task Create(User user)
+        public async Task Create(UserCreationDto userDto)
         {
+            var user = _mapper.Map<User>(userDto);
+
             if (user == null)
             {
                 throw new ArgumentNullException("Invalid user");
@@ -67,7 +69,7 @@ namespace core.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task Update(int id, User entity)
+        public async Task Update(int id, UserCreationDto entity)
         {
             var user = await _context.Users.FindAsync(id);
 
@@ -85,7 +87,7 @@ namespace core.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task<User> GetByEmail(string email)
+        public async Task<UserLoginResponseDto> GetByEmail(string email)
         {
             var user = await _context.Users
                 .Include(u => u.Company)
@@ -96,7 +98,7 @@ namespace core.Repositories
             if (user == null)
                 throw new EntityNotFoundException();
 
-            return user;
+            return _mapper.Map<UserLoginResponseDto>(user);
         }
     }
 }

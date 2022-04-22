@@ -1,14 +1,9 @@
-﻿using core.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using core.Dtos;
 
 namespace core.Repositories.Abstractions
 {
-    public interface IUsersRepository : IRepository<User>
+    public interface IUsersRepository : IRepository<UserDto, UserCreationDto>
     {
-        public Task<User> GetByEmail(string email);
+        public Task<UserLoginResponseDto> GetByEmail(string email);
     }
 }

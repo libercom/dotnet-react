@@ -1,11 +1,6 @@
 ﻿using AutoMapper;
 using core.Dtos;
-using core.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using domain.Models;
 
 namespace core.Profiles
 {
@@ -14,6 +9,7 @@ namespace core.Profiles
         public UserProfile()
         {
             CreateMap<User, UserDto>();
+            CreateMap<User, UserLoginResponseDto>();
             CreateMap<UserCreationDto, User>();
         }
     }

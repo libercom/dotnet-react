@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using core.Repositories;
+using core.Repositories.Abstractions;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
 namespace api.Helpers
@@ -33,6 +35,19 @@ namespace api.Helpers
                     }
                 };
             });
+
+            return services;
+        }
+
+        public static IServiceCollection AddRepositoryGroup(this IServiceCollection services)
+        {
+            services.AddScoped<IUsersRepository, UsersRepository>();
+            services.AddScoped<IOrdersRepository, OrdersRepository>();
+            services.AddScoped<ICompaniesRepository, CompaniesRepository>();
+            services.AddScoped<ICountriesRepository, CountriesRepository>();
+            services.AddScoped<ICargoTypesRepository, CargoTypesRepository>();
+            services.AddScoped<IPaymentMethodsRepository, PaymentMethodsRepository>();
+            services.AddScoped<IRolesRepository, RolesRepository>();
 
             return services;
         }

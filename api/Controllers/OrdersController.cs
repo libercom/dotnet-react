@@ -1,5 +1,4 @@
-﻿using core.Models;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using AutoMapper;
 using core.Repositories.Abstractions;
 using core.Dtos;
@@ -26,7 +25,7 @@ namespace api.Controllers
         {
             var orders = await _orders.GetAll();
 
-            return orders.Select(o => _mapper.Map<OrderDto>(o)).ToList();
+            return orders.ToList();
         }
 
         [HttpGet("{id}")]
@@ -36,7 +35,7 @@ namespace api.Controllers
             {
                 var order = await _orders.Get(id);
                 
-                return _mapper.Map<OrderDto>(order);
+                return order;
             }
             catch (EntityNotFoundException)
             {
@@ -48,11 +47,9 @@ namespace api.Controllers
         [HttpPost]
         public async Task<IActionResult> PostOrder(OrderCreationDto orderDto)
         {
-            var order = _mapper.Map<Order>(orderDto);
-
             try
             {
-                await _orders.Create(order);
+                await _orders.Create(orderDto);
             }
             catch (ArgumentNullException)
             {
@@ -60,7 +57,7 @@ namespace api.Controllers
 
             }
 
-            return CreatedAtAction(nameof(GetOrder), new { id = order.OrderId }, order);
+            return CreatedAtAction(nameof(GetOrder), new { id = orderDto.OrderId }, orderDto);
         }
 
         [HttpDelete("{id}")]

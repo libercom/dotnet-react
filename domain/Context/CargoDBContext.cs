@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using core.Models;
+using domain.Models;
 
-namespace core.Context
+namespace domain.Context
 {
     public class CargoDBContext: DbContext
     {

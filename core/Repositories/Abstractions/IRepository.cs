@@ -1,17 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace core.Repositories.Abstractions
+﻿namespace core.Repositories.Abstractions
 {
-    public interface IRepository<T>
+    public interface IRepository<T, S>
     {
-        public Task<IEnumerable<T>> GetAll();
+        public abstract Task<IEnumerable<T>> GetAll();
         public Task<T> Get(int id);
-        public Task Create(T entity);
-        public Task Update(int id, T entity);
+        public Task Create(S entity);
+        public Task Update(int id, S entity);
         public Task Delete(int id);
     }
 

@@ -1,12 +1,7 @@
-﻿using core.Context;
-using core.Models;
+﻿using domain.Context;
+using domain.Models;
 using core.Repositories.Abstractions;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace core.Repositories
 {

@@ -1,11 +1,11 @@
 ﻿using core.Dtos;
-using core.Models;
+using domain.Models;
 
 namespace api.Services.Abstractions
 {
     public interface IAuthenticationService
     {
-        public Task<User> Authenticate(UserLoginDto userDto);
+        public Task<UserLoginResponseDto> Authenticate(UserLoginDto userDto);
     }
 
     public class InvalidCredentialsException : Exception

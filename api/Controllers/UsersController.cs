@@ -1,7 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using core.Models;
-using core.Context;
 using AutoMapper;
 using core.Repositories.Abstractions;
 using api.Services.Abstractions;
@@ -25,7 +22,7 @@ namespace api.Controllers
             IMapper mapper,
             IJwtTokenService jwtService,
             IAuthenticationService authenticationService
-            )
+        )
         {
             _users = users;
             _mapper = mapper;
@@ -38,7 +35,7 @@ namespace api.Controllers
         {
             var users = await _users.GetAll();
 
-            return users.Select(u => _mapper.Map<UserDto>(u)).ToList();
+            return users.ToList();
         }
 
         [HttpGet("{id}")]
@@ -48,7 +45,7 @@ namespace api.Controllers
             {
                 var user = await _users.Get(id);
 
-                return _mapper.Map<UserDto>(user);
+                return user;
 
             }
             catch (EntityNotFoundException)
@@ -61,18 +58,16 @@ namespace api.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> PostUser(UserCreationDto userDto)
         {
-            var user = _mapper.Map<User>(userDto);
-
             try
             {
-                await _users.Create(user);
+                await _users.Create(userDto);
             }
             catch (ArgumentNullException)
             {
                 return BadRequest();
             }
 
-            return CreatedAtAction(nameof(GetUser), new { id = user.UserId }, user);
+            return CreatedAtAction(nameof(GetUser), new { id = userDto.UserId }, userDto);
         }
 
         [HttpDelete("{id}")]
@@ -103,10 +98,11 @@ namespace api.Controllers
 
                 Response.Cookies.Append("jwt", jwt, new CookieOptions
                 {
-                    HttpOnly = true
+                    HttpOnly = true,
+                    Expires = DateTime.Now.AddHours(1)
                 });
 
-                return Ok(_mapper.Map<UserDto>(user));
+                return Ok("You logged in");
             }
             catch (Exception ex) when (
                 ex is InvalidCredentialsException
@@ -121,18 +117,16 @@ namespace api.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Register(UserCreationDto userDto)
         {
-            var user = _mapper.Map<User>(userDto);
-
             try
             {
-                await _users.Create(user);
+                await _users.Create(userDto);
             }
             catch (ArgumentNullException)
             {
                 return BadRequest();
             }
 
-            return CreatedAtAction(nameof(GetUser), new { id = user.UserId }, _mapper.Map<UserDto>(user));
+            return CreatedAtAction(nameof(GetUser), new { id = userDto.UserId }, userDto);
         }
 
         [HttpGet("user")]
@@ -145,7 +139,7 @@ namespace api.Controllers
 
             var user = await _users.Get(userId);
 
-            return Ok(_mapper.Map<UserDto>(user));
+            return user;
         }
     }
 }

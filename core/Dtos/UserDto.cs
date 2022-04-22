@@ -1,4 +1,4 @@
-﻿using core.Models;
+﻿using domain.Models;
 
 namespace core.Dtos
 {

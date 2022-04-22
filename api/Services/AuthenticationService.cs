@@ -1,6 +1,5 @@
 ﻿using api.Services.Abstractions;
 using core.Dtos;
-using core.Models;
 using core.Repositories.Abstractions;
 
 namespace api.Services
@@ -14,7 +13,7 @@ namespace api.Services
             _users = users;
         }
 
-        public async Task<User> Authenticate(UserLoginDto userDto)
+        public async Task<UserLoginResponseDto> Authenticate(UserLoginDto userDto)
         {
             try
             {

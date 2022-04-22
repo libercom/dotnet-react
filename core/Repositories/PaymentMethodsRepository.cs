@@ -1,5 +1,5 @@
-﻿using core.Context;
-using core.Models;
+﻿using domain.Context;
+using domain.Models;
 using core.Repositories.Abstractions;
 using Microsoft.EntityFrameworkCore;
 using System;

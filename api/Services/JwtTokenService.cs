@@ -2,17 +2,21 @@
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Text;
 
 namespace api.Services
 {
     public class JwtTokenService : IJwtTokenService
     {
-        private readonly string key = "what's up danger?";
+        private readonly byte[] _key;
+
+        public JwtTokenService(byte[] key)
+        {
+            _key = key;
+        }
 
         public string Generate(int id, string role)
         {
-            var symmetricSecurityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
+            var symmetricSecurityKey = new SymmetricSecurityKey(_key);
             var credentials = new SigningCredentials(symmetricSecurityKey, SecurityAlgorithms.HmacSha256Signature);
             var header = new JwtHeader(credentials);
 
@@ -27,7 +31,7 @@ namespace api.Services
 
         public JwtSecurityToken Validate(string jwt)
         {
-            var symmetricSecurityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
+            var symmetricSecurityKey = new SymmetricSecurityKey(_key);
 
             _ = new JwtSecurityTokenHandler().ValidateToken(jwt, new TokenValidationParameters
             {

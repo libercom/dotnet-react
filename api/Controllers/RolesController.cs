@@ -1,7 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using core.Context;
-using core.Models;
+using domain.Models;
 using core.Repositories.Abstractions;
 using Microsoft.AspNetCore.Authorization;
 
