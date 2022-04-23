@@ -1,8 +1,8 @@
-﻿using domain.Models;
+﻿using core.Dtos;
 
 namespace core.Repositories.Abstractions
 {
-    public interface IPaymentMethodsRepository : IRepository<PaymentMethod, PaymentMethod>
+    public interface IPaymentMethodsRepository : IRepository<PaymentMethodDto, PaymentMethodDto>
     {
     }
 }

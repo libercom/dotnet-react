@@ -1,8 +1,8 @@
-﻿using domain.Models;
+﻿using core.Dtos;
 
 namespace core.Repositories.Abstractions
 {
-    public interface IRolesRepository : IRepository<Role, Role>
+    public interface IRolesRepository : IRepository<RoleDto, RoleDto>
     {
     }
 }

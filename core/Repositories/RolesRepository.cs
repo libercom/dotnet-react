@@ -2,27 +2,68 @@
 using domain.Models;
 using core.Repositories.Abstractions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using AutoMapper;
+using core.Dtos;
 
 namespace core.Repositories
 {
     public class RolesRepository : IRolesRepository
     {
         private readonly CargoDBContext _context;
+        private readonly ILogger<RolesRepository> _logger;
+        private readonly IMapper _mapper;
 
-        public RolesRepository(CargoDBContext context)
+        public RolesRepository(CargoDBContext context, IMapper mapper, ILogger<RolesRepository> logger)
         {
             _context = context;
+            _logger = logger;
+            _mapper = mapper;
         }
 
-        public async Task Create(Role role)
+        public async Task<IEnumerable<RoleDto>> GetAll()
         {
+            try
+            {
+                return await _context.Roles.Select(r => _mapper.Map<RoleDto>(r)).ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                throw;
+            }
+        }
+
+        public async Task<RoleDto> Get(int id)
+        {
+            var role = await _context.Roles.FindAsync(id);
+
+            if (role == null)
+                throw new EntityNotFoundException();
+
+            return _mapper.Map<RoleDto>(role);
+        }
+
+        public async Task Create(RoleDto roleDto)
+        {
+            var role = _mapper.Map<Role>(roleDto);
+
             if (role == null)
             {
                 throw new ArgumentNullException("Invalid role");
             }
 
             _context.Roles.Add(role);
-            await _context.SaveChangesAsync();
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                throw;
+            }
         }
 
         public async Task Delete(int id)
@@ -33,25 +74,19 @@ namespace core.Repositories
                 throw new EntityNotFoundException();
 
             _context.Roles.Remove(role);
-            await _context.SaveChangesAsync();
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                throw;
+            }
         }
 
-        public async Task<Role> Get(int id)
-        {
-            var role = await _context.Roles.FindAsync(id);
-
-            if (role == null)
-                throw new EntityNotFoundException();
-
-            return role;
-        }
-
-        public async Task<IEnumerable<Role>> GetAll()
-        {
-            return await _context.Roles.ToListAsync();
-        }
-
-        public async Task Update(int id, Role entity)
+        public async Task Update(int id, RoleDto entity)
         {
             var role = await _context.Roles.FindAsync(id);
 
@@ -60,7 +95,15 @@ namespace core.Repositories
 
             role.RoleType = entity.RoleType;
 
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                throw;
+            }
         }
     }
 }

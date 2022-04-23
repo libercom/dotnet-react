@@ -9,7 +9,6 @@ namespace core.Profiles
         public UserProfile()
         {
             CreateMap<User, UserDto>();
-            CreateMap<User, UserLoginResponseDto>();
             CreateMap<UserCreationDto, User>();
         }
     }

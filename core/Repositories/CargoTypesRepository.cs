@@ -2,42 +2,68 @@
 using domain.Models;
 using core.Repositories.Abstractions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using AutoMapper;
+using core.Dtos;
 
 namespace core.Repositories
 {
     public class CargoTypesRepository : ICargoTypesRepository
     {
         private readonly CargoDBContext _context;
+        private readonly ILogger<CargoTypesRepository> _logger;
+        private readonly IMapper _mapper;
 
-        public CargoTypesRepository(CargoDBContext context)
+        public CargoTypesRepository(CargoDBContext context, IMapper mapper, ILogger<CargoTypesRepository> logger)
         {
             _context = context;
+            _logger = logger;
+            _mapper = mapper;
         }
 
-        public async Task<IEnumerable<CargoType>> GetAll()
+        public async Task<IEnumerable<CargoTypeDto>> GetAll()
         {
-            return await _context.CargoTypes.ToListAsync();
+            try
+            {
+                return await _context.CargoTypes.Select(c => _mapper.Map<CargoTypeDto>(c)).ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                throw;
+            }
         }
 
-        public async Task<CargoType> Get(int id)
+        public async Task<CargoTypeDto> Get(int id)
         {
             var cargoType = await _context.CargoTypes.FindAsync(id);
 
             if (cargoType == null)
                 throw new EntityNotFoundException();
 
-            return cargoType;
+            return _mapper.Map<CargoTypeDto>(cargoType);
         }
 
-        public async Task Create(CargoType cargoType)
+        public async Task Create(CargoTypeDto cargoTypeDto)
         {
+            var cargoType = _mapper.Map<CargoType>(cargoTypeDto);
+
             if (cargoType == null)
             {
                 throw new ArgumentNullException("Invalid cargo type");
             }
 
             _context.CargoTypes.Add(cargoType);
-            await _context.SaveChangesAsync();
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                throw;
+            }
         }
 
         public async Task Delete(int id)
@@ -48,10 +74,19 @@ namespace core.Repositories
                 throw new EntityNotFoundException();
 
             _context.CargoTypes.Remove(cargoType);
-            await _context.SaveChangesAsync();
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                throw;
+            }
         }
 
-        public async Task Update(int id, CargoType entity)
+        public async Task Update(int id, CargoTypeDto entity)
         {
             var cargoType = await _context.CargoTypes.FindAsync(id);
 
@@ -60,7 +95,15 @@ namespace core.Repositories
 
             cargoType.CargoTypeName = entity.CargoTypeName;
 
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                throw;
+            }
         }
     }
 }

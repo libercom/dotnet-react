@@ -1,8 +1,8 @@
-﻿using domain.Models;
+﻿using core.Dtos;
 
 namespace core.Repositories.Abstractions
 {
-    public interface ICompaniesRepository : IRepository<Company, Company>
+    public interface ICompaniesRepository : IRepository<CompanyDto, CompanyDto>
     {
 
     }

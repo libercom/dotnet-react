@@ -4,43 +4,66 @@ using domain.Models;
 using core.Dtos;
 using core.Repositories.Abstractions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace core.Repositories
 {
     public class UsersRepository : IUsersRepository
     {
         private readonly CargoDBContext _context;
+        private readonly ILogger<UsersRepository> _logger;
         private readonly IMapper _mapper;
 
-        public UsersRepository(CargoDBContext context, IMapper mapper)
+        public UsersRepository(CargoDBContext context, IMapper mapper, ILogger<UsersRepository> logger)
         {
             _context = context;
             _mapper = mapper;
+            _logger = logger;
         }
 
         public async Task<IEnumerable<UserDto>> GetAll()
         {
-            var users = await _context.Users
-                .Include(u => u.Company)
-                .Include(u => u.Role)
-                .Include(u => u.Country)
-                .ToListAsync();
+            try
+            {
+                var users = await _context.Users
+                    .Include(u => u.Company)
+                    .Include(u => u.Role)
+                    .Include(u => u.Country)
+                    .ToListAsync();
 
-            return users.Select(u => _mapper.Map<UserDto>(u));
+                return users.Select(u => _mapper.Map<UserDto>(u));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                throw;
+            }
         }
 
         public async Task<UserDto> Get(int id)
         {
-            var user = await _context.Users
-                .Include(u => u.Company)
-                .Include(u => u.Role)
-                .Include(u => u.Country)
-                .FirstOrDefaultAsync(u => u.UserId == id);           
+            try
+            {
+                var user = await _context.Users
+                    .Include(u => u.Company)
+                    .Include(u => u.Role)
+                    .Include(u => u.Country)
+                    .FirstOrDefaultAsync(u => u.UserId == id);           
 
-            if (user == null)
-                throw new EntityNotFoundException();
+                if (user == null)
+                    throw new EntityNotFoundException();
 
-            return _mapper.Map<UserDto>(user);
+                return _mapper.Map<UserDto>(user);
+            }
+            catch (EntityNotFoundException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                throw;
+            }
         }
 
         public async Task Create(UserCreationDto userDto)
@@ -53,9 +76,17 @@ namespace core.Repositories
             }
 
             user.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
-
             _context.Users.Add(user);
-            await _context.SaveChangesAsync();
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                throw;
+            }
         }
 
         public async Task Delete(int id)
@@ -66,7 +97,16 @@ namespace core.Repositories
                 throw new EntityNotFoundException();
 
             _context.Users.Remove(user);
-            await _context.SaveChangesAsync();
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                throw;
+            }
         }
 
         public async Task Update(int id, UserCreationDto entity)
@@ -84,21 +124,41 @@ namespace core.Repositories
             user.CompanyId = entity.CompanyId;
             user.CountryId = entity.CountryId;
 
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                throw;
+            }
         }
 
-        public async Task<UserLoginResponseDto> GetByEmail(string email)
+        public async Task<UserDto> GetByEmail(string email)
         {
-            var user = await _context.Users
-                .Include(u => u.Company)
-                .Include(u => u.Role)
-                .Include(u => u.Country)
-                .FirstOrDefaultAsync(u => u.Email == email);
+            try
+            {
+                var user = await _context.Users
+                    .Include(u => u.Company)
+                    .Include(u => u.Role)
+                    .Include(u => u.Country)
+                    .FirstOrDefaultAsync(u => u.Email == email);
 
-            if (user == null)
-                throw new EntityNotFoundException();
+                if (user == null)
+                    throw new EntityNotFoundException();
 
-            return _mapper.Map<UserLoginResponseDto>(user);
+                return _mapper.Map<UserDto>(user);
+            }
+            catch (EntityNotFoundException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                throw;
+            }
         }
     }
 }

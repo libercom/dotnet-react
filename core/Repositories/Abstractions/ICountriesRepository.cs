@@ -1,8 +1,8 @@
-﻿using domain.Models;
+﻿using core.Dtos;
 
 namespace core.Repositories.Abstractions
 {
-    public interface ICountriesRepository : IRepository<Country, Country>
+    public interface ICountriesRepository : IRepository<CountryDto, CountryDto>
     {
     }
 }
