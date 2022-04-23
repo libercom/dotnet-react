@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using domain.Models;
 using core.Repositories.Abstractions;
 using Microsoft.AspNetCore.Authorization;
+using core.Dtos;
 
 namespace api.Controllers
 {
@@ -18,15 +18,22 @@ namespace api.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Country>>> GetAllCountries()
+        public async Task<ActionResult<IEnumerable<CountryDto>>> GetAllCountries()
         {
-            var countries = await _countries.GetAll();
+            try
+            {
+                var countries = await _countries.GetAll();
 
-            return countries.ToList();
+                return countries.ToList();
+            }
+            catch (Exception)
+            {
+                return Problem();
+            }
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Country>> GetCountry(int id)
+        public async Task<ActionResult<CountryDto>> GetCountry(int id)
         {
             try
             {
@@ -38,10 +45,14 @@ namespace api.Controllers
             {
                 return NotFound();
             }
+            catch (Exception)
+            {
+                return Problem();
+            }
         }
 
         [HttpPost]
-        public async Task<IActionResult> PostCountry(Country country)
+        public async Task<IActionResult> PostCountry(CountryDto country)
         {
             try
             {
@@ -50,6 +61,10 @@ namespace api.Controllers
             catch (ArgumentNullException)
             {
                 return BadRequest();
+            }
+            catch (Exception)
+            {
+                return Problem();
             }
 
             return CreatedAtAction(nameof(GetCountry), new { id = country.CountryId }, country);
@@ -65,6 +80,10 @@ namespace api.Controllers
             catch (EntityNotFoundException)
             {
                 return NotFound();
+            }
+            catch (Exception)
+            {
+                return Problem();
             }
 
             return NoContent();

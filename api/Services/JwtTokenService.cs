@@ -33,7 +33,7 @@ namespace api.Services
         {
             var symmetricSecurityKey = new SymmetricSecurityKey(_key);
 
-            _ = new JwtSecurityTokenHandler().ValidateToken(jwt, new TokenValidationParameters
+            new JwtSecurityTokenHandler().ValidateToken(jwt, new TokenValidationParameters
             {
                 IssuerSigningKey = symmetricSecurityKey,
                 ValidateIssuerSigningKey = true,

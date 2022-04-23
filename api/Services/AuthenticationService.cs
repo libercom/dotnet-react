@@ -7,13 +7,15 @@ namespace api.Services
     public class AuthenticationService : IAuthenticationService
     {
         private readonly IUsersRepository _users;
+        private readonly ILogger<AuthenticationService> _logger;
 
-        public AuthenticationService(IUsersRepository users)
+        public AuthenticationService(IUsersRepository users, ILogger<AuthenticationService> logger)
         {
             _users = users;
+            _logger = logger;
         }
 
-        public async Task<UserLoginResponseDto> Authenticate(UserLoginDto userDto)
+        public async Task<UserDto> Authenticate(UserLoginDto userDto)
         {
             try
             {
@@ -32,6 +34,10 @@ namespace api.Services
             )
             {
                 throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
             }
         }
     }

@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using domain.Models;
 using core.Repositories.Abstractions;
 using Microsoft.AspNetCore.Authorization;
+using core.Dtos;
 
 namespace api.Controllers
 {
@@ -18,15 +18,22 @@ namespace api.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Role>>> GetAllRoles()
+        public async Task<ActionResult<IEnumerable<RoleDto>>> GetAllRoles()
         {
-            var roles = await _roles.GetAll();
+            try
+            {
+                var roles = await _roles.GetAll();
 
-            return roles.ToList();
+                return roles.ToList();
+            }
+            catch (Exception)
+            {
+                return Problem();
+            }
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Role>> GetRole(int id)
+        public async Task<ActionResult<RoleDto>> GetRole(int id)
         {
             try
             {
@@ -38,11 +45,14 @@ namespace api.Controllers
             {
                 return NotFound();
             }
-
+            catch (Exception)
+            {
+                return Problem();
+            }
         }
 
         [HttpPost]
-        public async Task<IActionResult> PostCompany(Role role)
+        public async Task<IActionResult> PostCompany(RoleDto role)
         {
             try
             {
@@ -51,6 +61,10 @@ namespace api.Controllers
             catch (ArgumentNullException)
             {
                 return BadRequest();
+            }
+            catch (Exception)
+            {
+                return Problem();
             }
 
             return CreatedAtAction(nameof(GetRole), new { id = role.RoleId }, role);
@@ -66,6 +80,10 @@ namespace api.Controllers
             catch (EntityNotFoundException)
             {
                 return NotFound();
+            }
+            catch (Exception)
+            {
+                return Problem();
             }
 
             return NoContent();

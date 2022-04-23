@@ -1,7 +1,7 @@
-﻿using domain.Models;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using core.Repositories.Abstractions;
 using Microsoft.AspNetCore.Authorization;
+using core.Dtos;
 
 namespace api.Controllers
 {
@@ -18,15 +18,22 @@ namespace api.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<CargoType>>> GetAllCargoTypes()
+        public async Task<ActionResult<IEnumerable<CargoTypeDto>>> GetAllCargoTypes()
         {
-            var cargoTypes = await _cargoTypes.GetAll();
+            try
+            {
+                var cargoTypes = await _cargoTypes.GetAll();
 
-            return cargoTypes.ToList();
+                return cargoTypes.ToList();
+            }
+            catch (Exception)
+            {
+                return Problem();
+            }
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<CargoType>> GetCargoType(int id)
+        public async Task<ActionResult<CargoTypeDto>> GetCargoType(int id)
         {
             try
             {
@@ -38,10 +45,14 @@ namespace api.Controllers
             {
                 return NotFound();
             }
+            catch (Exception)
+            {
+                return Problem();
+            }
         }
 
         [HttpPost]
-        public async Task<IActionResult> PostCargoType(CargoType cargoType)
+        public async Task<IActionResult> PostCargoType(CargoTypeDto cargoType)
         {
             try
             {
@@ -50,6 +61,10 @@ namespace api.Controllers
             catch (ArgumentNullException)
             {
                 return BadRequest();
+            }
+            catch (Exception)
+            {
+                return Problem();
             }
 
             return CreatedAtAction(nameof(GetCargoType), new { id = cargoType.CargoTypeId }, cargoType);
@@ -65,6 +80,10 @@ namespace api.Controllers
             catch (EntityNotFoundException)
             {
                 return NotFound();
+            }
+            catch (Exception)
+            {
+                return Problem();
             }
 
             return NoContent();

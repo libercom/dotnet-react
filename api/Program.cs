@@ -21,10 +21,13 @@ var key = Encoding.UTF8.GetBytes(appSettings.Secret);
 
 builder.Services.AddJwtAuthentication(key);
 
-builder.Services.AddAutoMapper(typeof(UserProfile), typeof(OrderProfile));
+builder.Services.AddAutoMapper(typeof(UserProfile), typeof(OrderProfile), typeof(CargoTypeProfile),
+    typeof(CountryProfile), typeof(CompanyProfile), typeof(PaymentMethodProfile), typeof(RoleProfile));
 
 builder.Services.AddDbContext<CargoDBContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("CargoDBContext")));
+
+builder.Services.AddLogging();
 
 builder.Services.AddRepositoryGroup();
 

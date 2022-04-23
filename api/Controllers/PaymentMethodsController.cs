@@ -1,7 +1,7 @@
-﻿using domain.Models;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using core.Repositories.Abstractions;
 using Microsoft.AspNetCore.Authorization;
+using core.Dtos;
 
 namespace api.Controllers
 {
@@ -18,15 +18,22 @@ namespace api.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<PaymentMethod>>> GetAllPaymentMethods()
+        public async Task<ActionResult<IEnumerable<PaymentMethodDto>>> GetAllPaymentMethods()
         {
-            var paymentMethods = await _paymentMethods.GetAll();
+            try
+            {
+                var paymentMethods = await _paymentMethods.GetAll();
 
-            return paymentMethods.ToList();
+                return paymentMethods.ToList();
+            }
+            catch (Exception)
+            {
+                return Problem();
+            }
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<PaymentMethod>> GetPaymentMethod(int id)
+        public async Task<ActionResult<PaymentMethodDto>> GetPaymentMethod(int id)
         {
             try
             {
@@ -38,11 +45,14 @@ namespace api.Controllers
             {
                 return NotFound();
             }
-
+            catch (Exception)
+            {
+                return Problem();
+            }
         }
 
         [HttpPost]
-        public async Task<IActionResult> PostPaymentMethod(PaymentMethod paymentMethod)
+        public async Task<IActionResult> PostPaymentMethod(PaymentMethodDto paymentMethod)
         {
             try
             {
@@ -51,6 +61,10 @@ namespace api.Controllers
             catch (ArgumentNullException)
             {
                 return BadRequest();
+            }
+            catch (Exception)
+            {
+                return Problem();
             }
 
             return CreatedAtAction(nameof(GetPaymentMethod), new { id = paymentMethod.PaymentMethodId }, paymentMethod);
@@ -66,6 +80,10 @@ namespace api.Controllers
             catch (EntityNotFoundException)
             {
                 return NotFound();
+            }
+            catch (Exception)
+            {
+                return Problem();
             }
 
             return NoContent();

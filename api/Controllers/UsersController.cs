@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using AutoMapper;
 using core.Repositories.Abstractions;
 using api.Services.Abstractions;
 using core.Dtos;
 using Microsoft.AspNetCore.Authorization;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace api.Controllers
 {
@@ -15,17 +15,14 @@ namespace api.Controllers
         private readonly IUsersRepository _users;
         private readonly IJwtTokenService _jwtService;
         private readonly IAuthenticationService _authenticationService;
-        private readonly IMapper _mapper;
 
         public UsersController(
             IUsersRepository users,
-            IMapper mapper,
             IJwtTokenService jwtService,
             IAuthenticationService authenticationService
         )
         {
             _users = users;
-            _mapper = mapper;
             _jwtService = jwtService;
             _authenticationService = authenticationService;
         }
@@ -33,9 +30,16 @@ namespace api.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<UserDto>>> GetAllUsers()
         {
-            var users = await _users.GetAll();
-
-            return users.ToList();
+            try
+            {
+                var users = await _users.GetAll();
+            
+                return users.ToList();
+            }
+            catch (Exception)
+            {
+                return Problem();
+            }
         }
 
         [HttpGet("{id}")]
@@ -52,6 +56,10 @@ namespace api.Controllers
             {
                 return NotFound();
             }
+            catch (Exception)
+            {
+                return Problem();
+            }
         }
 
         [HttpPost]
@@ -65,6 +73,10 @@ namespace api.Controllers
             catch (ArgumentNullException)
             {
                 return BadRequest();
+            }
+            catch (Exception)
+            {
+                return Problem();
             }
 
             return CreatedAtAction(nameof(GetUser), new { id = userDto.UserId }, userDto);
@@ -82,13 +94,17 @@ namespace api.Controllers
             {
                 return NotFound();
             }
+            catch (Exception)
+            {
+                return Problem();
+            }
 
             return NoContent();
         }
 
         [HttpPost("login")]
         [AllowAnonymous]
-        public async Task<IActionResult> Authenticate(UserLoginDto userDto)
+        public async Task<ActionResult<UserDto>> Authenticate(UserLoginDto userDto)
         {
             try
             {
@@ -102,7 +118,7 @@ namespace api.Controllers
                     Expires = DateTime.Now.AddHours(1)
                 });
 
-                return Ok("You logged in");
+                return user;
             }
             catch (Exception ex) when (
                 ex is InvalidCredentialsException
@@ -110,6 +126,10 @@ namespace api.Controllers
             )
             {
                 return BadRequest("Invalid Credentials");
+            }
+            catch (Exception)
+            {
+                return Problem();
             }
         }
 
@@ -125,6 +145,10 @@ namespace api.Controllers
             {
                 return BadRequest();
             }
+            catch (Exception)
+            {
+                return Problem();
+            }
 
             return CreatedAtAction(nameof(GetUser), new { id = userDto.UserId }, userDto);
         }
@@ -133,13 +157,28 @@ namespace api.Controllers
         public async Task<ActionResult<UserDto>> GetCurrentUser()
         {
             var jwt = Request.Cookies["jwt"];
+            JwtSecurityToken token;
 
-            var token = _jwtService.Validate(jwt);
-            int userId = Convert.ToInt32(token.Issuer);
+            try
+            {
+                token = _jwtService.Validate(jwt);
+            }
+            catch (Exception)
+            {
+                return BadRequest("Invalid token");
+            }
 
-            var user = await _users.Get(userId);
-
-            return user;
+            try
+            {
+                int userId = Convert.ToInt32(token.Issuer);
+                var user = await _users.Get(userId);
+                
+                return user;
+            }
+            catch (Exception)
+            {
+                return Problem();
+            }
         }
     }
 }

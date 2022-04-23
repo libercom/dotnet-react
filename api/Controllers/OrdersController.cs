@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using AutoMapper;
 using core.Repositories.Abstractions;
 using core.Dtos;
 using Microsoft.AspNetCore.Authorization;
@@ -12,20 +11,25 @@ namespace api.Controllers
     public class OrdersController : Controller
     {
         private readonly IOrdersRepository _orders;
-        private readonly IMapper _mapper;
 
-        public OrdersController(IOrdersRepository orders, IMapper mapper)
+        public OrdersController(IOrdersRepository orders)
         {
             _orders = orders;
-            _mapper = mapper;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<OrderDto>>> GetAllOrders()
         {
-            var orders = await _orders.GetAll();
+            try
+            {
+                var orders = await _orders.GetAll();
 
-            return orders.ToList();
+                return orders.ToList();
+            }
+            catch (Exception)
+            {
+                return Problem();
+            }
         }
 
         [HttpGet("{id}")]
@@ -41,7 +45,10 @@ namespace api.Controllers
             {
                 return NotFound();
             }
-
+            catch (Exception)
+            {
+                return Problem();
+            }
         }
 
         [HttpPost]
@@ -55,6 +62,10 @@ namespace api.Controllers
             {
                 return BadRequest();
 
+            }
+            catch (Exception)
+            {
+                return Problem();
             }
 
             return CreatedAtAction(nameof(GetOrder), new { id = orderDto.OrderId }, orderDto);
@@ -71,6 +82,10 @@ namespace api.Controllers
             catch (EntityNotFoundException)
             {
                 return NotFound();
+            }
+            catch (Exception)
+            {
+                return Problem();
             }
 
             return NoContent();
