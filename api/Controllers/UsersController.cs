@@ -4,12 +4,14 @@ using api.Services.Abstractions;
 using core.Dtos;
 using Microsoft.AspNetCore.Authorization;
 using System.IdentityModel.Tokens.Jwt;
+using Microsoft.AspNetCore.Cors;
 
 namespace api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
+
     public class UsersController : Controller
     {
         private readonly IUsersRepository _users;
@@ -178,6 +180,40 @@ namespace api.Controllers
             catch (Exception)
             {
                 return Problem();
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpGet("check/{email}")]
+        public async Task<ActionResult<bool>> CheckEmail(string email)
+        {
+            try
+            {
+                await _users.GetByEmail(email);
+
+                return true;
+            }
+            catch (EntityNotFoundException)
+            {
+                return false;
+            }
+            catch (Exception)
+            {
+                return Problem();
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpGet("logout")]
+        public void Logout()
+        {
+            if (Request.Cookies["jwt"] != null)
+            {
+                Response.Cookies.Append("jwt", "", new CookieOptions
+                {
+                    HttpOnly = true,
+                    Expires = DateTime.Now.AddHours(-1)
+                });
             }
         }
     }

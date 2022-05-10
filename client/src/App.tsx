@@ -1,24 +1,24 @@
-import { Box, Button, Container } from "@mui/material";
-import Navbar from "./components/Navbar";
-import Signin from "./components/Signin";
-import DataTable from "./components/Table";
+import React, {useEffect} from 'react';
+import './App.css';
+import SignIn from './components/SignIn'
+import Navbar from './components/Navbar';
+import {Route, Routes, BrowserRouter as Router, Navigate} from 'react-router-dom'
+import Home from "./components/Home";
+import SignUp from "./components/SignUp";
+import {AuthProvider, useAuth} from "./context/AuthContext";
+import {Routing} from "./Routing";
 
-const App = () => {
+function App() {
+    const {authenticated} = useAuth();
+
     return (
-        <Container>
-            <Navbar></Navbar>
-            <DataTable></DataTable>
-            <Button
-                sx={{ mt: 10 }}
-                size="large"
-                variant="contained"
-                color="success"
-            >
-                Add
-            </Button>
-            <Signin></Signin>
-        </Container>
+        <Router>
+            <AuthProvider>
+                <Navbar/>
+                <Routing/>
+            </AuthProvider>
+        </Router>
     );
-};
+}
 
 export default App;

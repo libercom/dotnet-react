@@ -17,6 +17,7 @@ namespace api.Controllers
             _countries = countries;
         }
 
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<CountryDto>>> GetAllCountries()
         {

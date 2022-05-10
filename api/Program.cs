@@ -21,6 +21,18 @@ var key = Encoding.UTF8.GetBytes(appSettings.Secret);
 
 builder.Services.AddJwtAuthentication(key);
 
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(
+        policy =>
+        {
+            policy.WithOrigins("http://localhost:3000")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+        });
+});
+
 builder.Services.AddAutoMapper(typeof(UserProfile), typeof(OrderProfile), typeof(CargoTypeProfile),
     typeof(CountryProfile), typeof(CompanyProfile), typeof(PaymentMethodProfile), typeof(RoleProfile));
 
@@ -42,12 +54,20 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
+app.UseRouting();
 app.UseHttpsRedirection();
+
+app.UseCors();
 
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapControllers();
+app.UseStaticFiles();
+
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapControllers();
+    endpoints.MapControllerRoute("Spa", "{*url}", defaults: new { controller = "Home", action = "Spa" });
+});
 
 app.Run();

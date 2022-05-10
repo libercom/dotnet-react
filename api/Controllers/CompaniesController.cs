@@ -17,6 +17,7 @@ namespace api.Controllers
             _companies = companies;
         }
 
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<CompanyDto>>> GetAllCompanies()
         {
