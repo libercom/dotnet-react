@@ -103,7 +103,6 @@ export default function SignUp() {
     }, []);
 
     const submitHandler: SubmitHandler<RegisterFormData> = (data: RegisterFormData) => {
-
         axios.post('https://localhost:7166/api/Users/register', {
             firstName: data.firstName,
             lastName: data.lastName,

@@ -3,17 +3,19 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using domain.Context;
 
 #nullable disable
 
-namespace core.Migrations
+namespace domain.Migrations
 {
     [DbContext(typeof(CargoDBContext))]
-    partial class CargoDBContextModelSnapshot : ModelSnapshot
+    [Migration("20220520080559_ChangedOrdersKey")]
+    partial class ChangedOrdersKey
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

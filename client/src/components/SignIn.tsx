@@ -75,7 +75,7 @@ export default function SignIn() {
                             id="password"
                             error={!!error}
                             onChange={e => {
-                                clearErrors();
+                                error && clearErrors();
                                 field.onChange(e);
                             }}
                         />

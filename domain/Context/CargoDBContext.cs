@@ -27,14 +27,14 @@ namespace domain.Context
         {
             modelBuilder.Entity<Order>()
                 .HasOne(o => o.SendingCountry)
-                .WithOne()
-                .HasForeignKey<Order>(o => o.SendingCountryId)
+                .WithMany()
+                .HasForeignKey(o => o.SendingCountryId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Order>()
                 .HasOne(o => o.DestinationCountry)
-                .WithOne()
-                .HasForeignKey<Order>(o => o.DestinationCountryId)
+                .WithMany()
+                .HasForeignKey(o => o.DestinationCountryId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<User>()

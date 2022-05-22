@@ -7,7 +7,7 @@ namespace api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+    [AllowAnonymous]
     public class OrdersController : Controller
     {
         private readonly IOrdersRepository _orders;
@@ -18,13 +18,67 @@ namespace api.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<OrderDto>>> GetAllOrders()
+        public async Task<IActionResult> GetAllOrders(
+            [FromQuery] int pageNumber, 
+            [FromQuery] int pageSize, 
+            [FromQuery] string sortCriteria,
+            [FromQuery] string sortType,
+            [FromQuery] int destinationCountry,
+            [FromQuery] int sendingCountry)
         {
             try
             {
                 var orders = await _orders.GetAll();
+                
+                if (!sortCriteria.Equals("none"))
+                {
+                    if (sortType.Equals("asc"))
+                    {
+                        if (sortCriteria.Equals("payment"))
+                        {
+                            orders = orders.OrderBy(x => x.Payment);
+                        } else if (sortCriteria.Equals("shipmentDate"))
+                        {
+                            orders = orders.OrderBy(x => x.ShipmentDate);
+                        } else
+                        {
+                            orders = orders.OrderBy(x => x.ArrivalDate);
+                        }
+                    } else
+                    {
+                        if (sortCriteria.Equals("payment"))
+                        {
+                            orders = orders.OrderByDescending(x => x.Payment);
+                        }
+                        else if (sortCriteria.Equals("shipmentDate"))
+                        {
+                            orders = orders.OrderByDescending(x => x.ShipmentDate);
+                        }
+                        else
+                        {
+                            orders = orders.OrderByDescending(x => x.ArrivalDate);
+                        }
+                    }
+                }
 
-                return orders.ToList();
+                if (destinationCountry != 0)
+                {
+                    orders = orders.Where(x => x.DestinationCountry.CountryId == destinationCountry);
+                }
+
+                if (sendingCountry != 0)
+                {
+                    orders = orders.Where(x => x.SendingCountry.CountryId == sendingCountry);
+                }
+
+                return Ok(new
+                {
+                    count = orders.Count(),
+                    orders = orders
+                                .Skip((pageNumber - 1) * pageSize)
+                                .Take(pageSize)
+                                .ToList()
+                });
             }
             catch (Exception)
             {
