@@ -2,6 +2,8 @@
 using core.Repositories.Abstractions;
 using core.Dtos;
 using Microsoft.AspNetCore.Authorization;
+using api.Services.Abstractions;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace api.Controllers
 {
@@ -11,10 +13,12 @@ namespace api.Controllers
     public class OrdersController : Controller
     {
         private readonly IOrdersRepository _orders;
+        private readonly IJwtTokenService _jwtService;
 
-        public OrdersController(IOrdersRepository orders)
+        public OrdersController(IOrdersRepository orders, IJwtTokenService jwtService)
         {
             _orders = orders;
+            _jwtService = jwtService;
         }
 
         [HttpGet]
@@ -24,7 +28,8 @@ namespace api.Controllers
             [FromQuery] string sortCriteria,
             [FromQuery] string sortType,
             [FromQuery] int destinationCountry,
-            [FromQuery] int sendingCountry)
+            [FromQuery] int sendingCountry,
+            [FromQuery] bool onlyMyOrders)
         {
             try
             {
@@ -69,6 +74,25 @@ namespace api.Controllers
                 if (sendingCountry != 0)
                 {
                     orders = orders.Where(x => x.SendingCountry.CountryId == sendingCountry);
+                }
+
+                if (onlyMyOrders)
+                {
+                    var jwt = Request.Cookies["jwt"];
+                    JwtSecurityToken token;
+
+                    try
+                    {
+                        token = _jwtService.Validate(jwt);
+                    }
+                    catch (Exception)
+                    {
+                        return BadRequest("Invalid token");
+                    }
+
+                    int userId = Convert.ToInt32(token.Issuer);
+
+                    orders = orders.Where(x => x.User.UserId == userId);
                 }
 
                 return Ok(new
@@ -132,6 +156,25 @@ namespace api.Controllers
             try
             {
                 await _orders.Delete(id);
+            }
+            catch (EntityNotFoundException)
+            {
+                return NotFound();
+            }
+            catch (Exception)
+            {
+                return Problem();
+            }
+
+            return NoContent();
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateOrder(int id, OrderCreationDto orderDto)
+        {
+            try
+            {
+                await _orders.Update(id, orderDto);
             }
             catch (EntityNotFoundException)
             {

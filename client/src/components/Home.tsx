@@ -19,6 +19,9 @@ import MenuItem from "@mui/material/MenuItem";
 import Box from "@mui/material/Box";
 import {useAuth} from "../context/AuthContext";
 import AddOrder from "./AddOrder";
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import UpdateOrder from "./UpdateOrder";
 
 interface User {
     userId: number;
@@ -58,7 +61,7 @@ interface OrderRequestData {
         paymentMethodId: number;
         paymentMethodName: string;
     }
-    sendingCountryId: string;
+    sendingCountryId: number;
     sendingCountry: {
         countryId: number;
         countryName: string
@@ -72,7 +75,7 @@ interface OrderRequestData {
 
 interface OrderData {
     id: number;
-    userName: string;
+    user: User;
     shipmentDate: Date;
     arrivalDate: Date;
     cargoType: string;
@@ -80,6 +83,10 @@ interface OrderData {
     paymentMethod: string;
     sendingCountry: string;
     destinationCountry: string;
+    cargoTypeId: number;
+    paymentMethodId: number;
+    sendingCountryId: number;
+    destinationCountryId: number;
 }
 
 interface CountryData {
@@ -90,7 +97,7 @@ interface CountryData {
 function createOrderData(order: OrderRequestData): OrderData {
     return {
         id: order.orderId,
-        userName: order.user.firstName + ' ' + order.user.lastName,
+        user: order.user,
         shipmentDate: new Date(order.shipmentDate),
         arrivalDate: new Date(order.arrivalDate),
         cargoType: order.cargoType.cargoTypeName,
@@ -98,6 +105,10 @@ function createOrderData(order: OrderRequestData): OrderData {
         paymentMethod: order.paymentMethod.paymentMethodName,
         sendingCountry: order.sendingCountry.countryName,
         destinationCountry: order.destinationCountry.countryName,
+        cargoTypeId: order.cargoType.cargoTypeId,
+        paymentMethodId: order.paymentMethod.paymentMethodId,
+        sendingCountryId: order.sendingCountry.countryId,
+        destinationCountryId: order.destinationCountry.countryId,
     };
 }
 
@@ -105,7 +116,8 @@ export default function Home() {
     const {user} = useAuth();
     const [rows, setRows] = useState<OrderData[]>([] as OrderData[]);
     const [page, setPage] = useState(0);
-    const [count, setCount] = useState(0)
+    const [count, setCount] = useState(0);
+    const [refresh, setRefresh] = useState(false);
     const [rowsPerPage, setRowsPerPage] = useState(5);
 
     const [openSort, setOpenSort] = useState(false);
@@ -117,11 +129,14 @@ export default function Home() {
     const [filterDestinationCountry, setFilterDestinationCountry] = useState(0);
 
     const [openAddOrder, setOpenAddOrder] = useState(false);
+    const [openUpdateOrder, setOpenUpdateOrder] = useState(false);
+    const [onlyMyOrders, setOnlyMyOrders] = useState(false);
+    const [currentOrder, setCurrentOrder] = useState<OrderData | null>(null);
 
     const [countries, setCountries] = useState<CountryData[]>([] as CountryData[]);
 
     useEffect(() => {
-        axios.get(`https://localhost:7166/api/Orders?pageNumber=${page + 1}&pageSize=${rowsPerPage}&sortCriteria=${sortCriteria}&sortType=${sortType}&destinationCountry=${filterDestinationCountry}&sendingCountry=${filterSendingCountry}`)
+        axios.get(`https://localhost:7166/api/Orders?pageNumber=${page + 1}&pageSize=${rowsPerPage}&sortCriteria=${sortCriteria}&sortType=${sortType}&destinationCountry=${filterDestinationCountry}&sendingCountry=${filterSendingCountry}&onlyMyOrders=${onlyMyOrders}`)
             .then(res => {
                 let data = res.data.orders as OrderRequestData[];
                 let orderData = data.map(order => createOrderData(order));
@@ -130,7 +145,11 @@ export default function Home() {
                 setRows(orderData);
             })
             .catch(error => console.log(error));
-    }, [page, rowsPerPage, sortCriteria, sortType, filterSendingCountry, filterDestinationCountry]);
+    }, [page, rowsPerPage, sortCriteria, sortType, filterSendingCountry, filterDestinationCountry, refresh, onlyMyOrders]);
+
+    useEffect(() => {
+        setPage(0);
+    }, [rowsPerPage, sortCriteria, sortType, filterSendingCountry, filterDestinationCountry]);
 
     useEffect(() => {
         if (openFilter) {
@@ -146,7 +165,6 @@ export default function Home() {
 
     const handleRowsPerPageChange = (e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
         setRowsPerPage(parseInt(e.target.value, 10));
-        setPage(0);
     }
 
     const handleSortClose = () => {
@@ -194,18 +212,51 @@ export default function Home() {
         setOpenAddOrder(true);
     }
 
+    const handleUpdateOrderClose = () => {
+        setCurrentOrder(null);
+        setOpenUpdateOrder(false);
+    }
+
+    const handleUpdateOrderOpen = (order: OrderData) => {
+        return () => {
+            setCurrentOrder(order);
+            setOpenUpdateOrder(true);
+        }
+    }
+
+    const handleRefreshPage = () => {
+        setRefresh(!refresh)
+    }
+
+    const handleOnlyMyOrdersChange = () => {
+        setOnlyMyOrders(!onlyMyOrders);
+    }
+
+    const handleDeleteOrder = (orderId: number) => {
+        return () => {
+            axios.delete(`https://localhost:7166/api/Orders/${orderId}`)
+                .then(() => handleRefreshPage())
+                .catch(error => console.log(error));
+        }
+    }
+
     return (
         <Container component="main" maxWidth="lg" sx={{marginTop: '50px'}}>
-            <Container component="div" sx={{marginLeft: '-20px', marginBottom: '20px', display: 'flex'}}>
+            <Container component="div" sx={{marginLeft: '-25px', marginBottom: '20px', display: 'flex'}}>
                 <Container component="div">
-                    <Button variant="contained" sx={{marginLeft: '-20px'}} onClick={handleSortOpen}>Sort</Button>
+                    <Button variant="contained" sx={{marginLeft: '-25px'}} onClick={handleSortOpen}>Sort</Button>
                     <Button variant="contained" sx={{marginLeft: '20px'}} onClick={handleFilterOpen}>Filter</Button>
                 </Container>
                 {(user.role.roleType === 'Admin' || user.role.roleType === 'Editor') ? (
-                    <Button variant="contained" color="success" sx={{marginRight: '-30px'}}
-                            onClick={handleAddOrderOpen}>
-                        Add
-                    </Button>
+                    <Container component="div" sx={{display: 'flex', justifyContent: 'flex-end'}}>
+                        <Button
+                            variant={onlyMyOrders ? "outlined" : "contained"}
+                            onClick={handleOnlyMyOrdersChange}>{onlyMyOrders ? 'All orders' : 'My orders'}</Button>
+                        <Button variant="contained" sx={{marginLeft: '20px', marginRight: '-75px'}} color="success"
+                                onClick={handleAddOrderOpen}>
+                            Add
+                        </Button>
+                    </Container>
                 ) : (
                     <></>
                 )}
@@ -281,7 +332,13 @@ export default function Home() {
                 </DialogActions>
             </Dialog>
             {/*Add order dialog*/}
-            <AddOrder openAddOrder={openAddOrder} handleAddOrderClose={handleAddOrderClose}/>
+            <AddOrder openAddOrder={openAddOrder} handleAddOrderClose={handleAddOrderClose}
+                      handleRefreshPage={handleRefreshPage}/>
+            {/*Update order dialog*/}
+            {openUpdateOrder && (
+                <UpdateOrder openUpdateOrder={openUpdateOrder} handleUpdateOrderClose={handleUpdateOrderClose}
+                             handleRefreshPage={handleRefreshPage} order={currentOrder as OrderData}/>
+            )}
             <TableContainer component={Paper}>
                 <Table sx={{minWidth: 650}} aria-label="simple table">
                     <TableHead>
@@ -294,6 +351,11 @@ export default function Home() {
                             <TableCell align="right">Payment Method</TableCell>
                             <TableCell align="right">Sending Country</TableCell>
                             <TableCell align="right">Destination Country</TableCell>
+                            {((user.role.roleType === 'Admin' || user.role.roleType === 'Editor') && onlyMyOrders) ? (
+                                <TableCell align="center">Actions</TableCell>
+                            ) : (
+                                <></>
+                            )}
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -303,7 +365,7 @@ export default function Home() {
                                 sx={{'&:last-child td, &:last-child th': {border: 0}}}
                             >
                                 <TableCell component="th" scope="row">
-                                    {row.userName}
+                                    {row.user.firstName + ' ' + row.user.lastName}
                                 </TableCell>
                                 <TableCell align="right">{row.shipmentDate.toLocaleDateString()}</TableCell>
                                 <TableCell align="right">{row.arrivalDate.toLocaleDateString()}</TableCell>
@@ -312,6 +374,18 @@ export default function Home() {
                                 <TableCell align="right">{row.paymentMethod}</TableCell>
                                 <TableCell align="right">{row.sendingCountry}</TableCell>
                                 <TableCell align="right">{row.destinationCountry}</TableCell>
+                                {((user.role.roleType === 'Admin' || user.role.roleType === 'Editor') && onlyMyOrders) ? (
+                                    <TableCell>
+                                        <Button onClick={handleUpdateOrderOpen(row)}>
+                                            <EditIcon sx={{fontSize: '20px'}}/>
+                                        </Button>
+                                        <Button color="error" onClick={handleDeleteOrder(row.id)}>
+                                            <DeleteIcon sx={{fontSize: '20px'}}/>
+                                        </Button>
+                                    </TableCell>
+                                ) : (
+                                    <></>
+                                )}
                             </TableRow>
                         ))}
                     </TableBody>

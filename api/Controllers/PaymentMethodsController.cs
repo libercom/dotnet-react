@@ -18,6 +18,7 @@ namespace api.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<PaymentMethodDto>>> GetAllPaymentMethods()
         {
             try
