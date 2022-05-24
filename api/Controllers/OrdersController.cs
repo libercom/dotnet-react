@@ -4,6 +4,7 @@ using core.Dtos;
 using Microsoft.AspNetCore.Authorization;
 using api.Services.Abstractions;
 using System.IdentityModel.Tokens.Jwt;
+using core.Models;
 
 namespace api.Controllers
 {
@@ -22,7 +23,7 @@ namespace api.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllOrders(
+        public async Task<ActionResult<PagedResponse>> GetAllOrders(
             [FromQuery] int pageNumber, 
             [FromQuery] int pageSize, 
             [FromQuery] string sortCriteria,
@@ -31,83 +32,43 @@ namespace api.Controllers
             [FromQuery] int sendingCountry,
             [FromQuery] bool onlyMyOrders)
         {
+            int userId = -1;
+
+            if (onlyMyOrders)
+            {
+                var jwt = Request.Cookies["jwt"];
+
+                try
+                {
+                    userId = _jwtService.GetIssuer(jwt);
+                }
+                catch (Exception)
+                {
+                    return BadRequest("Invalid token");
+                }
+            }
+
             try
             {
-                var orders = await _orders.GetAll();
-                
-                if (!sortCriteria.Equals("none"))
+                PagedRequest pagedRequest = new PagedRequest
                 {
-                    if (sortType.Equals("asc"))
-                    {
-                        if (sortCriteria.Equals("payment"))
-                        {
-                            orders = orders.OrderBy(x => x.Payment);
-                        } else if (sortCriteria.Equals("shipmentDate"))
-                        {
-                            orders = orders.OrderBy(x => x.ShipmentDate);
-                        } else
-                        {
-                            orders = orders.OrderBy(x => x.ArrivalDate);
-                        }
-                    } else
-                    {
-                        if (sortCriteria.Equals("payment"))
-                        {
-                            orders = orders.OrderByDescending(x => x.Payment);
-                        }
-                        else if (sortCriteria.Equals("shipmentDate"))
-                        {
-                            orders = orders.OrderByDescending(x => x.ShipmentDate);
-                        }
-                        else
-                        {
-                            orders = orders.OrderByDescending(x => x.ArrivalDate);
-                        }
-                    }
-                }
+                    PageSize = pageSize,
+                    PageNumber = pageNumber,
+                    SendingCountry = sendingCountry,
+                    DestinationCountry = destinationCountry,
+                    UserId = userId,
+                    SortCriteria = sortCriteria,
+                    SortType = sortType
+                };
 
-                if (destinationCountry != 0)
-                {
-                    orders = orders.Where(x => x.DestinationCountry.CountryId == destinationCountry);
-                }
+                var orders = await _orders.GetPagedData(pagedRequest);
 
-                if (sendingCountry != 0)
-                {
-                    orders = orders.Where(x => x.SendingCountry.CountryId == sendingCountry);
-                }
-
-                if (onlyMyOrders)
-                {
-                    var jwt = Request.Cookies["jwt"];
-                    JwtSecurityToken token;
-
-                    try
-                    {
-                        token = _jwtService.Validate(jwt);
-                    }
-                    catch (Exception)
-                    {
-                        return BadRequest("Invalid token");
-                    }
-
-                    int userId = Convert.ToInt32(token.Issuer);
-
-                    orders = orders.Where(x => x.User.UserId == userId);
-                }
-
-                return Ok(new
-                {
-                    count = orders.Count(),
-                    orders = orders
-                                .Skip((pageNumber - 1) * pageSize)
-                                .Take(pageSize)
-                                .ToList()
-                });
+                return Ok(orders);
             }
             catch (Exception)
             {
                 return Problem();
-            }
+            }  
         }
 
         [HttpGet("{id}")]

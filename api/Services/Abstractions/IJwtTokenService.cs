@@ -6,5 +6,6 @@ namespace api.Services.Abstractions
     {
         public string Generate(int id, string role);
         public JwtSecurityToken Validate(string jwt);
+        public int GetIssuer(string jwt);
     }
 }

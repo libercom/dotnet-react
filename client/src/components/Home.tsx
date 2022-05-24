@@ -149,7 +149,7 @@ export default function Home() {
 
     useEffect(() => {
         setPage(0);
-    }, [rowsPerPage, sortCriteria, sortType, filterSendingCountry, filterDestinationCountry]);
+    }, [rowsPerPage, sortCriteria, sortType, filterSendingCountry, filterDestinationCountry, onlyMyOrders]);
 
     useEffect(() => {
         if (openFilter) {

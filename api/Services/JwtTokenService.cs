@@ -29,6 +29,20 @@ namespace api.Services
             return new JwtSecurityTokenHandler().WriteToken(securityToken);
         }
 
+        public int GetIssuer(string jwt)
+        {
+            try
+            {
+                JwtSecurityToken token = Validate(jwt);
+
+                return Convert.ToInt32(token.Issuer);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
         public JwtSecurityToken Validate(string jwt)
         {
             var symmetricSecurityKey = new SymmetricSecurityKey(_key);

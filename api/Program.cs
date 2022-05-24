@@ -62,12 +62,14 @@ app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseStaticFiles();
+app.UseFileServer();
 
 app.UseEndpoints(endpoints =>
 {
     endpoints.MapControllers();
     endpoints.MapControllerRoute("Spa", "{*url}", defaults: new { controller = "Home", action = "Spa" });
 });
+
+/*app.MapControllers();*/
 
 app.Run();

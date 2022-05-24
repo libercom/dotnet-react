@@ -5,6 +5,7 @@ using core.Dtos;
 using core.Repositories.Abstractions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using core.Models;
 
 namespace core.Repositories
 {
@@ -141,6 +142,89 @@ namespace core.Repositories
             try
             {
                 await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                throw;
+            }
+        }
+
+        public async Task<PagedResponse> GetPagedData(PagedRequest request)
+        {
+            try
+            {
+                IQueryable<Order> orders = _context.Orders
+                    .Include(o => o.User)
+                        .ThenInclude(u => u.Role)
+                    .Include(o => o.User)
+                        .ThenInclude(u => u.Company)
+                    .Include(o => o.User)
+                        .ThenInclude(u => u.Country)
+                    .Include(o => o.PaymentMethod)
+                    .Include(o => o.CargoType)
+                    .Include(o => o.SendingCountry)
+                    .Include(o => o.DestinationCountry);
+
+                if (!request.SortCriteria.Equals("none"))
+                {
+                    if (request.SortType.Equals("asc"))
+                    {
+                        if (request.SortCriteria.Equals("payment"))
+                        {
+                            orders = orders.OrderBy(x => x.Payment);
+                        }
+                        else if (request.SortCriteria.Equals("shipmentDate"))
+                        {
+                            orders = orders.OrderBy(x => x.ShipmentDate);
+                        }
+                        else
+                        {
+                            orders = orders.OrderBy(x => x.ArrivalDate);
+                        }
+                    }
+                    else
+                    {
+                        if (request.SortCriteria.Equals("payment"))
+                        {
+                            orders = orders.OrderByDescending(x => x.Payment);
+                        }
+                        else if (request.SortCriteria.Equals("shipmentDate"))
+                        {
+                            orders = orders.OrderByDescending(x => x.ShipmentDate);
+                        }
+                        else
+                        {
+                            orders = orders.OrderByDescending(x => x.ArrivalDate);
+                        }
+                    }
+                }
+
+                if (request.DestinationCountry != 0)
+                {
+                    orders = orders.Where(x => x.DestinationCountry.CountryId == request.DestinationCountry);
+                }
+
+                if (request.SendingCountry != 0)
+                {
+                    orders = orders.Where(x => x.SendingCountry.CountryId == request.SendingCountry);
+                }
+
+                if (request.UserId != -1)
+                {
+                    orders = orders.Where(x => x.User.UserId == request.UserId);
+                }
+
+                var filteredOrders = (await orders.ToListAsync()).Select(o => _mapper.Map<OrderDto>(o));
+
+                return new PagedResponse
+                {
+                    Count = filteredOrders.Count(),
+                    Orders = filteredOrders
+                                .Skip((request.PageNumber - 1) * request.PageSize)
+                                .Take(request.PageSize)
+                                .ToList()
+                };
             }
             catch (Exception ex)
             {
