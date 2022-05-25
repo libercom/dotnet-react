@@ -1,37 +1,28 @@
-﻿using domain.Context;
+﻿using core.Context;
 using domain.Models;
 using core.Repositories.Abstractions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using AutoMapper;
-using core.Dtos;
+using common.Dtos;
+using common.Exceptions;
 
 namespace core.Repositories
 {
     public class CountriesRepository : ICountriesRepository
     {
         private readonly CargoDBContext _context;
-        private readonly ILogger<CountriesRepository> _logger;
         private readonly IMapper _mapper;
 
-        public CountriesRepository(CargoDBContext context, IMapper mapper, ILogger<CountriesRepository> logger)
+        public CountriesRepository(CargoDBContext context, IMapper mapper)
         {
             _context = context;
-            _logger = logger;
             _mapper = mapper;
         }
 
         public async Task<IEnumerable<CountryDto>> GetAll()
         {
-            try
-            {
-                return await _context.Countries.Select(c => _mapper.Map<CountryDto>(c)).ToListAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex.Message);
-                throw;
-            }
+            return await _context.Countries.Select(c => _mapper.Map<CountryDto>(c)).ToListAsync();
         }
 
         public async Task<CountryDto> Get(int id)
@@ -48,22 +39,8 @@ namespace core.Repositories
         {
             var country = _mapper.Map<Country>(countryDto);
 
-            if (country == null)
-            {
-                throw new ArgumentNullException("Invalid country");
-            }
-
             _context.Countries.Add(country);
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex.Message);
-                throw;
-            }
+            await _context.SaveChangesAsync();
         }
 
         public async Task Delete(int id)
@@ -74,16 +51,7 @@ namespace core.Repositories
                 throw new EntityNotFoundException();
 
             _context.Countries.Remove(country);
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex.Message);
-                throw;
-            }
+            await _context.SaveChangesAsync();
         }
 
         public async Task Update(int id, CountryDto entity)
@@ -95,15 +63,7 @@ namespace core.Repositories
 
             country.CountryName = entity.CountryName;
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex.Message);
-                throw;
-            }
+            await _context.SaveChangesAsync();
         }
     }
 }

@@ -1,10 +1,11 @@
 using Microsoft.EntityFrameworkCore;
-using domain.Context;
+using core.Context;
 using core.Profiles;
 using api.Services.Abstractions;
 using api.Services;
-using api.Helpers;
 using System.Text;
+using api.Infrastructure.AppSettings;
+using api.Infrastructure.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -43,7 +44,7 @@ builder.Services.AddLogging();
 
 builder.Services.AddRepositoryGroup();
 
-builder.Services.AddScoped<IJwtTokenService>(x => new JwtTokenService(key));
+builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 
 var app = builder.Build();
@@ -51,9 +52,12 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    app.UseDeveloperExceptionPage();
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+app.UseExceptionHandling();
+
 app.UseRouting();
 app.UseHttpsRedirection();
 
@@ -62,8 +66,9 @@ app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseFileServer();
+app.UseDbTransaction();
 
+app.UseFileServer();
 app.UseEndpoints(endpoints =>
 {
     endpoints.MapControllers();

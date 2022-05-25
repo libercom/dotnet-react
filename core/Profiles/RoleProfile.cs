@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using core.Dtos;
+using common.Dtos;
 using domain.Models;
 
 namespace core.Profiles

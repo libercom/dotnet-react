@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using core.Repositories.Abstractions;
 using Microsoft.AspNetCore.Authorization;
-using core.Dtos;
+using common.Dtos;
 
 namespace api.Controllers
 {
@@ -21,52 +21,23 @@ namespace api.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<CompanyDto>>> GetAllCompanies()
         {
-            try
-            {
-                var companies = await _companies.GetAll();
+            var companies = await _companies.GetAll();
 
-                return companies.ToList();
-            }
-            catch (Exception)
-            {
-                return Problem();
-            }
+            return companies.ToList();
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<CompanyDto>> GetCompany(int id)
         {
-            try
-            {
-                var company = await _companies.Get(id);
+            var company = await _companies.Get(id);
 
-                return company;
-            }
-            catch (EntityNotFoundException)
-            {
-                return NotFound();
-            }
-            catch (Exception)
-            {
-                return Problem();
-            }
+            return company;
         }
 
         [HttpPost]
         public async Task<IActionResult> PostCompany(CompanyDto company)
         {
-            try
-            {
-                await _companies.Create(company);
-            }
-            catch (ArgumentNullException)
-            {
-                return BadRequest();
-            }
-            catch (Exception)
-            {
-                return Problem();
-            }
+            await _companies.Create(company);
 
             return CreatedAtAction(nameof(GetCompany), new { id = company.CompanyId }, company);
         }
@@ -74,18 +45,7 @@ namespace api.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCompany(int id)
         {
-            try
-            {
-                await _companies.Delete(id);
-            }
-            catch (EntityNotFoundException)
-            {
-                return NotFound();
-            }
-            catch (Exception)
-            {
-                return Problem();
-            }
+            await _companies.Delete(id);
 
             return NoContent();
         }

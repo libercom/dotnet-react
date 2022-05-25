@@ -8,11 +8,4 @@
         public Task Update(int id, S entity);
         public Task Delete(int id);
     }
-
-    public class EntityNotFoundException : Exception
-    {
-        public EntityNotFoundException() : base("The given entity was not found")
-        {
-        }
-    }
 }

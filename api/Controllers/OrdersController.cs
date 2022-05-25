@@ -1,10 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using core.Repositories.Abstractions;
-using core.Dtos;
+using common.Dtos;
 using Microsoft.AspNetCore.Authorization;
 using api.Services.Abstractions;
 using System.IdentityModel.Tokens.Jwt;
-using core.Models;
+using common.Models;
 
 namespace api.Controllers
 {
@@ -38,74 +38,37 @@ namespace api.Controllers
             {
                 var jwt = Request.Cookies["jwt"];
 
-                try
-                {
-                    userId = _jwtService.GetIssuer(jwt);
-                }
-                catch (Exception)
-                {
-                    return BadRequest("Invalid token");
-                }
+                userId = _jwtService.GetIssuer(jwt);
             }
 
-            try
+            PagedRequest pagedRequest = new PagedRequest
             {
-                PagedRequest pagedRequest = new PagedRequest
-                {
-                    PageSize = pageSize,
-                    PageNumber = pageNumber,
-                    SendingCountry = sendingCountry,
-                    DestinationCountry = destinationCountry,
-                    UserId = userId,
-                    SortCriteria = sortCriteria,
-                    SortType = sortType
-                };
+                PageSize = pageSize,
+                PageNumber = pageNumber,
+                SendingCountry = sendingCountry,
+                DestinationCountry = destinationCountry,
+                UserId = userId,
+                SortCriteria = sortCriteria,
+                SortType = sortType
+            };
 
-                var orders = await _orders.GetPagedData(pagedRequest);
+            var orders = await _orders.GetPagedData(pagedRequest);
 
-                return Ok(orders);
-            }
-            catch (Exception)
-            {
-                return Problem();
-            }  
+            return Ok(orders);
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<OrderDto>> GetOrder(int id)
         {
-            try
-            {
-                var order = await _orders.Get(id);
+            var order = await _orders.Get(id);
                 
-                return order;
-            }
-            catch (EntityNotFoundException)
-            {
-                return NotFound();
-            }
-            catch (Exception)
-            {
-                return Problem();
-            }
+            return order;
         }
 
         [HttpPost]
         public async Task<IActionResult> PostOrder(OrderCreationDto orderDto)
         {
-            try
-            {
-                await _orders.Create(orderDto);
-            }
-            catch (ArgumentNullException)
-            {
-                return BadRequest();
-
-            }
-            catch (Exception)
-            {
-                return Problem();
-            }
+            await _orders.Create(orderDto);
 
             return CreatedAtAction(nameof(GetOrder), new { id = orderDto.OrderId }, orderDto);
         }
@@ -114,18 +77,7 @@ namespace api.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteOrder(int id)
         {
-            try
-            {
-                await _orders.Delete(id);
-            }
-            catch (EntityNotFoundException)
-            {
-                return NotFound();
-            }
-            catch (Exception)
-            {
-                return Problem();
-            }
+            await _orders.Delete(id);
 
             return NoContent();
         }
@@ -133,18 +85,7 @@ namespace api.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateOrder(int id, OrderCreationDto orderDto)
         {
-            try
-            {
-                await _orders.Update(id, orderDto);
-            }
-            catch (EntityNotFoundException)
-            {
-                return NotFound();
-            }
-            catch (Exception)
-            {
-                return Problem();
-            }
+            await _orders.Update(id, orderDto);
 
             return NoContent();
         }

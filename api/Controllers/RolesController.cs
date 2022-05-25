@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using core.Repositories.Abstractions;
 using Microsoft.AspNetCore.Authorization;
-using core.Dtos;
+using common.Dtos;
 
 namespace api.Controllers
 {
@@ -20,52 +20,23 @@ namespace api.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<RoleDto>>> GetAllRoles()
         {
-            try
-            {
-                var roles = await _roles.GetAll();
+            var roles = await _roles.GetAll();
 
-                return roles.ToList();
-            }
-            catch (Exception)
-            {
-                return Problem();
-            }
+            return roles.ToList();
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<RoleDto>> GetRole(int id)
         {
-            try
-            {
-                var role = await _roles.Get(id);
+            var role = await _roles.Get(id);
 
-                return role;
-            }
-            catch (EntityNotFoundException)
-            {
-                return NotFound();
-            }
-            catch (Exception)
-            {
-                return Problem();
-            }
+            return role;
         }
 
         [HttpPost]
         public async Task<IActionResult> PostCompany(RoleDto role)
         {
-            try
-            {
-                await _roles.Create(role);
-            }
-            catch (ArgumentNullException)
-            {
-                return BadRequest();
-            }
-            catch (Exception)
-            {
-                return Problem();
-            }
+            await _roles.Create(role);
 
             return CreatedAtAction(nameof(GetRole), new { id = role.RoleId }, role);
         }
@@ -73,18 +44,7 @@ namespace api.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCompany(int id)
         {
-            try
-            {
-                await _roles.Delete(id);
-            }
-            catch (EntityNotFoundException)
-            {
-                return NotFound();
-            }
-            catch (Exception)
-            {
-                return Problem();
-            }
+            await _roles.Delete(id);
 
             return NoContent();
         }

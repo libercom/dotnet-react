@@ -1,106 +1,71 @@
 ﻿using AutoMapper;
-using domain.Context;
+using core.Context;
 using domain.Models;
-using core.Dtos;
+using common.Dtos;
 using core.Repositories.Abstractions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using core.Models;
+using common.Models;
+using common.Exceptions;
 
 namespace core.Repositories
 {
     public class OrdersRepository : IOrdersRepository
     {
         private readonly CargoDBContext _context;
-        private readonly ILogger<OrdersRepository> _logger;
         private readonly IMapper _mapper;
 
-        public OrdersRepository(CargoDBContext context, IMapper mapper, ILogger<OrdersRepository> logger)
+        public OrdersRepository(CargoDBContext context, IMapper mapper)
         {
             _context = context;
             _mapper = mapper;
-            _logger = logger;
         }
 
         public async Task<IEnumerable<OrderDto>> GetAll()
         {
-            try
-            {
-                var orders = await _context.Orders
-                    .Include(o => o.User)
-                        .ThenInclude(u => u.Role)
-                    .Include(o => o.User)
-                        .ThenInclude(u => u.Company)
-                    .Include(o => o.User)
-                        .ThenInclude(u => u.Country)
-                    .Include(o => o.PaymentMethod)
-                    .Include(o => o.CargoType)
-                    .Include(o => o.SendingCountry)
-                    .Include(o => o.DestinationCountry)
-                    .ToListAsync();
+            var orders = await _context.Orders
+                .Include(o => o.User)
+                    .ThenInclude(u => u.Role)
+                .Include(o => o.User)
+                    .ThenInclude(u => u.Company)
+                .Include(o => o.User)
+                    .ThenInclude(u => u.Country)
+                .Include(o => o.PaymentMethod)
+                .Include(o => o.CargoType)
+                .Include(o => o.SendingCountry)
+                .Include(o => o.DestinationCountry)
+                .ToListAsync();
 
-                return orders.Select(o => _mapper.Map<OrderDto>(o));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex.Message);
-                throw;
-            }
+            return orders.Select(o => _mapper.Map<OrderDto>(o));
         }
 
         public async Task<OrderDto> Get(int id)
         {
-            try
-            {
-                var order = await _context.Orders
-                    .Include(o => o.User)
-                        .ThenInclude(u => u.Role)
-                    .Include(o => o.User)
-                        .ThenInclude(u => u.Company)
-                    .Include(o => o.User)
-                        .ThenInclude(u => u.Country)
-                    .Include(o => o.PaymentMethod)
-                    .Include(o => o.CargoType)
-                    .Include(o => o.SendingCountry)
-                    .Include(o => o.DestinationCountry)
-                    .FirstOrDefaultAsync(u => u.UserId == id);
+            var order = await _context.Orders
+                .Include(o => o.User)
+                    .ThenInclude(u => u.Role)
+                .Include(o => o.User)
+                    .ThenInclude(u => u.Company)
+                .Include(o => o.User)
+                    .ThenInclude(u => u.Country)
+                .Include(o => o.PaymentMethod)
+                .Include(o => o.CargoType)
+                .Include(o => o.SendingCountry)
+                .Include(o => o.DestinationCountry)
+                .FirstOrDefaultAsync(u => u.UserId == id);
 
-                if (order == null)
-                    throw new EntityNotFoundException();
+            if (order == null)
+                throw new EntityNotFoundException();
 
-                return _mapper.Map<OrderDto>(order);
-            }
-            catch (EntityNotFoundException)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex.Message);
-                throw;
-            }
+            return _mapper.Map<OrderDto>(order);
         }
 
         public async Task Create(OrderCreationDto orderDto)
         {
             var order = _mapper.Map<Order>(orderDto); ;
 
-            if (order == null)
-            {
-                throw new ArgumentNullException("Invalid order");
-            }
-
             _context.Orders.Add(order);
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex.Message);
-                throw;
-            }
+            await _context.SaveChangesAsync();
         }
 
         public async Task Delete(int id)
@@ -111,16 +76,7 @@ namespace core.Repositories
                 throw new EntityNotFoundException();
 
             _context.Orders.Remove(order);
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex.Message);
-                throw;
-            }
+            await _context.SaveChangesAsync();
         }
 
         public async Task Update(int id, OrderCreationDto entity)
@@ -139,98 +95,82 @@ namespace core.Repositories
             order.PaymentMethodId = entity.PaymentMethodId;
             order.CargoTypeId = entity.CargoTypeId;
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex.Message);
-                throw;
-            }
+            await _context.SaveChangesAsync();
         }
 
         public async Task<PagedResponse> GetPagedData(PagedRequest request)
         {
-            try
-            {
-                IQueryable<Order> orders = _context.Orders
-                    .Include(o => o.User)
-                        .ThenInclude(u => u.Role)
-                    .Include(o => o.User)
-                        .ThenInclude(u => u.Company)
-                    .Include(o => o.User)
-                        .ThenInclude(u => u.Country)
-                    .Include(o => o.PaymentMethod)
-                    .Include(o => o.CargoType)
-                    .Include(o => o.SendingCountry)
-                    .Include(o => o.DestinationCountry);
+            IQueryable<Order> orders = _context.Orders
+                .Include(o => o.User)
+                    .ThenInclude(u => u.Role)
+                .Include(o => o.User)
+                    .ThenInclude(u => u.Company)
+                .Include(o => o.User)
+                    .ThenInclude(u => u.Country)
+                .Include(o => o.PaymentMethod)
+                .Include(o => o.CargoType)
+                .Include(o => o.SendingCountry)
+                .Include(o => o.DestinationCountry);
 
-                if (!request.SortCriteria.Equals("none"))
+            if (!request.SortCriteria.Equals("none"))
+            {
+                if (request.SortType.Equals("asc"))
                 {
-                    if (request.SortType.Equals("asc"))
+                    if (request.SortCriteria.Equals("payment"))
                     {
-                        if (request.SortCriteria.Equals("payment"))
-                        {
-                            orders = orders.OrderBy(x => x.Payment);
-                        }
-                        else if (request.SortCriteria.Equals("shipmentDate"))
-                        {
-                            orders = orders.OrderBy(x => x.ShipmentDate);
-                        }
-                        else
-                        {
-                            orders = orders.OrderBy(x => x.ArrivalDate);
-                        }
+                        orders = orders.OrderBy(x => x.Payment);
+                    }
+                    else if (request.SortCriteria.Equals("shipmentDate"))
+                    {
+                        orders = orders.OrderBy(x => x.ShipmentDate);
                     }
                     else
                     {
-                        if (request.SortCriteria.Equals("payment"))
-                        {
-                            orders = orders.OrderByDescending(x => x.Payment);
-                        }
-                        else if (request.SortCriteria.Equals("shipmentDate"))
-                        {
-                            orders = orders.OrderByDescending(x => x.ShipmentDate);
-                        }
-                        else
-                        {
-                            orders = orders.OrderByDescending(x => x.ArrivalDate);
-                        }
+                        orders = orders.OrderBy(x => x.ArrivalDate);
                     }
                 }
-
-                if (request.DestinationCountry != 0)
+                else
                 {
-                    orders = orders.Where(x => x.DestinationCountry.CountryId == request.DestinationCountry);
+                    if (request.SortCriteria.Equals("payment"))
+                    {
+                        orders = orders.OrderByDescending(x => x.Payment);
+                    }
+                    else if (request.SortCriteria.Equals("shipmentDate"))
+                    {
+                        orders = orders.OrderByDescending(x => x.ShipmentDate);
+                    }
+                    else
+                    {
+                        orders = orders.OrderByDescending(x => x.ArrivalDate);
+                    }
                 }
-
-                if (request.SendingCountry != 0)
-                {
-                    orders = orders.Where(x => x.SendingCountry.CountryId == request.SendingCountry);
-                }
-
-                if (request.UserId != -1)
-                {
-                    orders = orders.Where(x => x.User.UserId == request.UserId);
-                }
-
-                var filteredOrders = (await orders.ToListAsync()).Select(o => _mapper.Map<OrderDto>(o));
-
-                return new PagedResponse
-                {
-                    Count = filteredOrders.Count(),
-                    Orders = filteredOrders
-                                .Skip((request.PageNumber - 1) * request.PageSize)
-                                .Take(request.PageSize)
-                                .ToList()
-                };
             }
-            catch (Exception ex)
+
+            if (request.DestinationCountry != 0)
             {
-                _logger.LogError(ex.Message);
-                throw;
+                orders = orders.Where(x => x.DestinationCountry.CountryId == request.DestinationCountry);
             }
+
+            if (request.SendingCountry != 0)
+            {
+                orders = orders.Where(x => x.SendingCountry.CountryId == request.SendingCountry);
+            }
+
+            if (request.UserId != -1)
+            {
+                orders = orders.Where(x => x.User.UserId == request.UserId);
+            }
+
+            var filteredOrders = (await orders.ToListAsync()).Select(o => _mapper.Map<OrderDto>(o));
+
+            return new PagedResponse
+            {
+                Count = filteredOrders.Count(),
+                Orders = filteredOrders
+                            .Skip((request.PageNumber - 1) * request.PageSize)
+                            .Take(request.PageSize)
+                            .ToList()
+            };
         }
     }
 }

@@ -1,5 +1,5 @@
-﻿using core.Dtos;
-using core.Models;
+﻿using common.Dtos;
+using common.Models;
 
 namespace core.Repositories.Abstractions
 {

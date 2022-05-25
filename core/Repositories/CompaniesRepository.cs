@@ -1,37 +1,28 @@
-﻿using domain.Context;
+﻿using core.Context;
 using domain.Models;
 using core.Repositories.Abstractions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using AutoMapper;
-using core.Dtos;
+using common.Dtos;
+using common.Exceptions;
 
 namespace core.Repositories
 {
     public class CompaniesRepository : ICompaniesRepository
     {
         private readonly CargoDBContext _context;
-        private readonly ILogger<CompaniesRepository> _logger;
         private readonly IMapper _mapper;
 
-        public CompaniesRepository(CargoDBContext context, IMapper mapper, ILogger<CompaniesRepository> logger)
+        public CompaniesRepository(CargoDBContext context, IMapper mapper)
         {
             _context = context;
-            _logger = logger;
             _mapper = mapper;
         }
 
         public async Task<IEnumerable<CompanyDto>> GetAll()
         {
-            try
-            {
-                return await _context.Companies.Select(c => _mapper.Map<CompanyDto>(c)).ToListAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex.Message);
-                throw;
-            }
+            return await _context.Companies.Select(c => _mapper.Map<CompanyDto>(c)).ToListAsync();
         }
 
         public async Task<CompanyDto> Get(int id)
@@ -48,22 +39,8 @@ namespace core.Repositories
         {
             var company = _mapper.Map<Company>(companyDto);
 
-            if (company == null)
-            {
-                throw new ArgumentNullException("Invalid company");
-            }
-
             _context.Companies.Add(company);
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex.Message);
-                throw;
-            }
+            await _context.SaveChangesAsync();
         }
 
         public async Task Delete(int id)
@@ -74,16 +51,7 @@ namespace core.Repositories
                 throw new EntityNotFoundException();
 
             _context.Companies.Remove(company);
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex.Message);
-                throw;
-            }
+            await _context.SaveChangesAsync();
         }
 
         public async Task Update(int id, CompanyDto entity)
@@ -96,15 +64,7 @@ namespace core.Repositories
             company.CompanyName = entity.CompanyName;
             company.CompanyDescription = entity.CompanyDescription;
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex.Message);
-                throw;
-            }
+            await _context.SaveChangesAsync();
         }
     }
 }

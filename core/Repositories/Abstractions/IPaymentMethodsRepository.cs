@@ -1,4 +1,4 @@
-﻿using core.Dtos;
+﻿using common.Dtos;
 
 namespace core.Repositories.Abstractions
 {

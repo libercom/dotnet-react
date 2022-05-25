@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using core.Repositories.Abstractions;
 using Microsoft.AspNetCore.Authorization;
-using core.Dtos;
+using common.Dtos;
 
 namespace api.Controllers
 {
@@ -21,52 +21,23 @@ namespace api.Controllers
         [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<CargoTypeDto>>> GetAllCargoTypes()
         {
-            try
-            {
-                var cargoTypes = await _cargoTypes.GetAll();
+            var cargoTypes = await _cargoTypes.GetAll();
 
-                return cargoTypes.ToList();
-            }
-            catch (Exception)
-            {
-                return Problem();
-            }
+            return cargoTypes.ToList();
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<CargoTypeDto>> GetCargoType(int id)
         {
-            try
-            {
-                var cargoType = await _cargoTypes.Get(id);
+            var cargoType = await _cargoTypes.Get(id);
 
-                return cargoType;
-            }
-            catch (EntityNotFoundException)
-            {
-                return NotFound();
-            }
-            catch (Exception)
-            {
-                return Problem();
-            }
+            return cargoType;
         }
 
         [HttpPost]
         public async Task<IActionResult> PostCargoType(CargoTypeDto cargoType)
         {
-            try
-            {
-                await _cargoTypes.Create(cargoType);
-            }
-            catch (ArgumentNullException)
-            {
-                return BadRequest();
-            }
-            catch (Exception)
-            {
-                return Problem();
-            }
+            await _cargoTypes.Create(cargoType);
 
             return CreatedAtAction(nameof(GetCargoType), new { id = cargoType.CargoTypeId }, cargoType);
         }
@@ -74,18 +45,7 @@ namespace api.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCargoType(int id)
         {
-            try
-            {
-                await _cargoTypes.Delete(id);
-            }
-            catch (EntityNotFoundException)
-            {
-                return NotFound();
-            }
-            catch (Exception)
-            {
-                return Problem();
-            }
+            await _cargoTypes.Delete(id);
 
             return NoContent();
         }
